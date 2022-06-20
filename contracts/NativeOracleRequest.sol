@@ -26,6 +26,11 @@ contract NativeOracleRequest is Ownable {
 
      uint public fee;
 
+
+      constructor(uint _fee) {
+        fee = _fee
+      }
+
      // FEE  ================================================================ >
      function setFee(uint _fee) external onlyOwner returns(bool) {
         fee = _fee;
