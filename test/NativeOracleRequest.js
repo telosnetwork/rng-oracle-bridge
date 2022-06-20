@@ -3,27 +3,32 @@ const { ethers } = require("hardhat");
 const ONE_TLOS = ethers.utils.parseEther("1.0");
 
 describe("NativeOracleRequest Contract", function () {
-    let bridge;
+    let bridge, owner, oracle, oracle2, user;
     beforeEach(async () => {
-        const [owner, oracle, oracle2, user] = await ethers.getSigners();
+        [owner, oracle, oracle2, user] = await ethers.getSigners();
         let Bridge = await ethers.getContractFactory("NativeOracleRequest");
         bridge = await Bridge.deploy(ONE_TLOS);
     })
     describe(":: Settings", function () {
-        it("Owner should be able to add an Oracle" , async function () {
-            expect(await bridge.addOracle("mygreatoracle", oracle)).to.not.be.reverted;
+        it("Owner should be able to register an Oracle" , async function () {
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
         });
         it("No other address should be able to add an Oracle" , async function () {
-            expect(await bridge.connect(user).addOracle("mygreatoracle2", oracle2)).to.be.reverted;
+            await expect(bridge.connect(user).addOracle(oracle2.address, "mygreatoracle2")).to.be.reverted;
         });
         it("No other address should be able to remove an Oracle" , async function () {
-            expect(await bridge.removeOracle(oracle)).to.be.reverted;
+            await expect(bridge.connect(user).removeOracle(oracle.address)).to.be.reverted;
         });
         it("Owner should be able to remove an Oracle" , async function () {
-            expect(await bridge.removeOracle(oracle)).to.not.be.reverted;
+            await expect(bridge.removeOracle(oracle.address)).to.not.be.reverted;
         });
         it("You should be able to query the fee" , async function () {
-            expect(bridge.fee()).to.equal(ONE_TLOS);
+            expect(await bridge.fee()).to.equal(ONE_TLOS);
+        });
+    });
+    describe(":: Getters", function () {
+        it("You should be able to query the fee" , async function () {
+            expect(await bridge.fee()).to.equal(ONE_TLOS);
         });
     });
     describe(":: Request", function () {

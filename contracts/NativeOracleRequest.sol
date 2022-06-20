@@ -26,9 +26,8 @@ contract NativeOracleRequest is Ownable {
 
      uint public fee;
 
-
       constructor(uint _fee) {
-        fee = _fee
+        fee = _fee;
       }
 
      // FEE  ================================================================ >
@@ -38,7 +37,7 @@ contract NativeOracleRequest is Ownable {
      }
 
      // ORACLES REGISTRY ================================================================ >
-     function addOracle(address _evm_address, string memory _native_address) external onlyOwner returns(bool) {
+     function registerOracle(address _evm_address, string memory _native_address) external onlyOwner returns(bool) {
         for(uint i; i < oracles.length;i++){
             if(oracles[i].evm_address == _evm_address){
                 require(false, "Oracle already added, delete it first");
@@ -59,7 +58,7 @@ contract NativeOracleRequest is Ownable {
      }
 
      // REQUEST HANDLING ================================================================ >
-     function request(string memory callId, function(string[] memory) external callback, address oracle, string[] memory data) external payable {
+     function request(string memory callId, function(string[] memory) external callback, address payable oracle, string[] memory data) external payable {
         require(msg.value == fee, "Needs TLOS to pay for response gas");
         // CHECK EXISTS
         for(uint i; i < requests[msg.sender].length; i++){
