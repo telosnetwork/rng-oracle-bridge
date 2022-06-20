@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NativeOracleRequest is Ownable {
+contract NativeOracleBridge is Ownable {
     event  Requested(address indexed requestor, address indexed oracle, string callId);
-    event  Answered(address indexed requestor, address indexed oracle, string callId);
+    event  Replied(address indexed requestor, address indexed oracle, string callId);
 
      struct Request {
         uint requested_at;
@@ -59,7 +59,7 @@ contract NativeOracleRequest is Ownable {
 
      // REQUEST HANDLING ================================================================ >
      function request(string memory callId, function(string[] memory) external callback, address payable oracle, string[] memory data) external payable {
-        require(msg.value == fee, "Needs TLOS to pay for response gas");
+        require(msg.value == fee, "Send enough TLOS to pay for the response gas");
         // CHECK EXISTS
         for(uint i; i < requests[msg.sender].length; i++){
             if(keccak256(bytes(requests[msg.sender][i].callId)) == keccak256(bytes(callId))){
@@ -76,7 +76,7 @@ contract NativeOracleRequest is Ownable {
         require(found, "Oracle was not found, make sure the address is correct");
 
         // TODO: SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
-        oracle.send(fee / 2);
+        oracle.transfer(fee / 2);
 
         // BUILD REQUEST
         requests[msg.sender].push(Request (block.timestamp, data, oracle, callId, callback));
@@ -94,16 +94,15 @@ contract NativeOracleRequest is Ownable {
         return false;
      }
 
-     // RESPONSE HANDLING ================================================================ >
-     function respond(string memory callId, address requestor, string[] memory args) external {
-
+     // REPLY HANDLING ================================================================ >
+     function reply(string memory callId, address requestor, string[] memory args) external {
         // TODO: MAKE SURE AN ORACLE IS CALLING
-
         for(uint i; i < requests[requestor].length; i++){
             if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
                 requests[requestor][i].callback(args);
+                // TODO: MAKE RESULTS PUBLICLY VIEWABLE (this won't be user friendly on explorer ^) ?
                 delete requests[requestor][i];
-                emit Answered(requestor, requests[requestor][i].oracle, callId);
+                emit Replied(requestor, requests[requestor][i].oracle, callId);
             }
         }
         require(false, "Request not found");

@@ -3,12 +3,12 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     const {deployer} = await getNamedAccounts();
 
 
-    const bridge = await deploy('NativeOracleRequest', {
+    const bridge = await deploy('NativeOracleBridge', {
         from: deployer,
-        args: [],
+        args: [1],
     });
 
     console.log("Deployed to:", bridge.address);
 
 };
-module.exports.tags = ['NativeOracleRequest'];
+module.exports.tags = ['NativeOracleBridge'];
