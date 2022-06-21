@@ -64,14 +64,18 @@ describe("NativeOracleBridge Contract", function () {
             await expect(testerContract.makeRequest("helloworld", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.be.reverted;
         });
         it("Should not be possible to have more than " + MAX_REQUESTS + " requests" , async function () {
-            await expect(testerContract.makeRequest("helloworld", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.be.reverted;
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
+            for(var i = 0; i < MAX_REQUESTS; i++){
+                await expect(testerContract.makeRequest("helloworld" + i, oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.not.be.reverted;
+            }
+            await expect(testerContract.makeRequest("helloworld10", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.be.reverted;
         });
     });
     describe(":: Response", function () {
         it("Shouldn't be able to reply from another address than the Request oracle" , async function () {
             await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
             await expect(testerContract.makeRequest("helloworld", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.not.be.reverted;
-            await expect(bridge.connect(user).reply("helloworld", owner.address, ["116"])).to.be.reverted;
+            await expect(bridge.connect(user).reply("helloworld", testerContract.address, ["116"])).to.be.reverted;
         });
         it("Should delete the Request" , async function () {
             await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;

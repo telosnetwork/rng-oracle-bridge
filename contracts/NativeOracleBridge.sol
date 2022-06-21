@@ -61,18 +61,21 @@ contract NativeOracleBridge is Ownable {
                 return true;
             }
         }
-        return false;
+        require(false, "No oracle found");
      }
 
      // REQUEST HANDLING ================================================================ >
      function request(string memory callId, function(string[] memory) external callback, address payable oracle, string[] memory data) external payable {
         require(msg.value == fee, "Send enough TLOS to pay for the response gas");
+        require(requests[msg.sender].length < maxRequests, "Maximum requests reached, wait for replies or delete one");
+
         // CHECK EXISTS
         for(uint i; i < requests[msg.sender].length; i++){
             if(keccak256(bytes(requests[msg.sender][i].callId)) == keccak256(bytes(callId))){
                 require(false, "Call ID already exists");
             }
         }
+
         this.requireOracleExists(oracle, "Oracle was not found, make sure the address is correct");
 
         // TODO: SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
@@ -94,18 +97,6 @@ contract NativeOracleBridge is Ownable {
         return false;
      }
 
-     function requireOracleExists(address oracle, string memory message) external view returns (bool) {
-         // CHECK ORACLE IS CORRECT
-         bool found = false;
-         for(uint i; i < oracles.length;i++){
-             if(oracles[i].evm_address == oracle){
-                 found = true;
-             }
-         }
-         require(found, message);
-         return found;
-     }
-
      // REPLY HANDLING ================================================================ >
      function reply(string memory callId, address requestor, string[] memory args) external {
         // TODO: MAKE SURE AN ORACLE IS CALLING
@@ -120,5 +111,18 @@ contract NativeOracleBridge is Ownable {
             }
         }
         require(false, "Request not found");
+     }
+
+     // UTIL ================================================================ >
+     function requireOracleExists(address oracle, string memory message) external view returns (bool) {
+         // CHECK ORACLE IS CORRECT
+         bool found = false;
+         for(uint i; i < oracles.length;i++){
+             if(oracles[i].evm_address == oracle){
+                 found = true;
+             }
+         }
+         require(found, message);
+         return found;
      }
 }
