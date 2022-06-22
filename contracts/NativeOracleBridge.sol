@@ -66,7 +66,7 @@ contract NativeOracleBridge is Ownable {
         require(requests[msg.sender].length < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
-        require(this.requestExists(msg.sender, callId), "Call ID already exists");
+        require(!this.requestExists(msg.sender, callId), "Call ID already exists");
         require(this.oracleExists(oracle), "Oracle was not found, make sure the address is correct");
 
         // TODO: SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
@@ -113,7 +113,7 @@ contract NativeOracleBridge is Ownable {
          return false;
      }
      function requestExists(address requestor, string memory callId) external view returns (bool) {
-        for(uint i; i < requests[requestor].length){
+        for(uint i; i < requests[requestor].length; i++){
             if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
                 return true;
             }
