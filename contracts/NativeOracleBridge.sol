@@ -15,7 +15,7 @@ contract NativeOracleBridge is Ownable {
         string callId;
         function(string[] memory) external callback;
      }
-     mapping (address => Request[]) public requests;
+     mapping (address => Request[]) private requests;
 
      struct Oracle {
         address evm_address;
@@ -45,11 +45,7 @@ contract NativeOracleBridge is Ownable {
 
      // ORACLES REGISTRY ================================================================ >
      function registerOracle(address _evm_address, string memory _native_address) external onlyOwner returns(bool) {
-        for(uint i; i < oracles.length;i++){
-            if(oracles[i].evm_address == _evm_address){
-                require(false, "Oracle already added, delete it first");
-            }
-        }
+        require(!this.oracleExists(_evm_address), "Oracle already registered");
         oracles.push(Oracle(_evm_address, _native_address));
         return true;
      }
@@ -70,13 +66,8 @@ contract NativeOracleBridge is Ownable {
         require(requests[msg.sender].length < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
-        for(uint i; i < requests[msg.sender].length; i++){
-            if(keccak256(bytes(requests[msg.sender][i].callId)) == keccak256(bytes(callId))){
-                require(false, "Call ID already exists");
-            }
-        }
-
-        this.requireOracleExists(oracle, "Oracle was not found, make sure the address is correct");
+        require(this.requestExists(msg.sender, callId), "Call ID already exists");
+        require(this.oracleExists(oracle), "Oracle was not found, make sure the address is correct");
 
         // TODO: SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
         oracle.transfer(fee / 2);
@@ -99,8 +90,7 @@ contract NativeOracleBridge is Ownable {
 
      // REPLY HANDLING ================================================================ >
      function reply(string memory callId, address requestor, string[] memory args) external {
-        // TODO: MAKE SURE AN ORACLE IS CALLING
-        this.requireOracleExists(msg.sender, "Only a registered oracle can call this function");
+        require(this.oracleExists(msg.sender), "Only a registered oracle can call this function");
         for(uint i; i < requests[requestor].length; i++){
             if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
                 requests[requestor][i].callback(args);
@@ -114,15 +104,20 @@ contract NativeOracleBridge is Ownable {
      }
 
      // UTIL ================================================================ >
-     function requireOracleExists(address oracle, string memory message) external view returns (bool) {
-         // CHECK ORACLE IS CORRECT
-         bool found = false;
+     function oracleExists(address oracle) external view returns (bool) {
          for(uint i; i < oracles.length;i++){
              if(oracles[i].evm_address == oracle){
-                 found = true;
+                 return true;
              }
          }
-         require(found, message);
-         return found;
+         return false;
+     }
+     function requestExists(address requestor, string memory callId) external view returns (bool) {
+        for(uint i; i < requests[requestor].length){
+            if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
+                return true;
+            }
+        }
+        return false;
      }
 }

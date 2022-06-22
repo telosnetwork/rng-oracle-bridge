@@ -15,6 +15,7 @@ contract NativeOracleBridgeTester {
     }
 
     function makeRequest(string memory callId, address payable oracle, string[] memory data) external  payable {
+        require(msg.value > 0, "Request needs fee passed");
         return bridge.request{value: msg.value }(callId, this.printResponse, oracle, data);
     }
 

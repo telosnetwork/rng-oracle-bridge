@@ -21,9 +21,11 @@ describe("NativeOracleBridge Contract", function () {
             await expect(bridge.connect(user).registerOracle(oracle2.address, "mygreatoracle2")).to.be.reverted;
         });
         it("Shouldn't allow addresses other than owner to remove an Oracle" , async function () {
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
             await expect(bridge.connect(user).removeOracle(oracle.address)).to.be.reverted;
         });
-        it("Shouldn't allow addresses other than owner to remove an Oracle" , async function () {
+        it("Should allow owner to remove an Oracle" , async function () {
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
             await expect(bridge.removeOracle(oracle.address)).to.not.be.reverted;
         });
         it("Should allow owner to set the fee" , async function () {
@@ -62,6 +64,17 @@ describe("NativeOracleBridge Contract", function () {
         });
         it("Should revert if callId already exists" , async function () {
             await expect(testerContract.makeRequest("helloworld", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.be.reverted;
+        });
+        it("Should be able to query the requestor's own requests" , async function () {
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
+            await expect(testerContract.makeRequest("helloworld4", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.not.be.reverted;
+            let requests = await bridge.connect(ethers.provider.getSigner(testerContract.address)).requestsOf(testerContract.address);
+            expect(requests.length).to.be.gt(0);
+        });
+        it("Should not be able to query another requestor's requests" , async function () {
+            await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
+            await expect(testerContract.makeRequest("helloworld5", oracle.address, ["arg1", "arg2"], {"value": ONE_TLOS})).to.not.be.reverted;
+            await expect(bridge.connect(user).requestsOf(owner.address)).to.be.reverted;
         });
         it("Should not be possible to have more than " + MAX_REQUESTS + " requests" , async function () {
             await expect(bridge.registerOracle(oracle.address, "mygreatoracle")).to.not.be.reverted;
