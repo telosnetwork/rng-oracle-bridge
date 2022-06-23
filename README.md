@@ -12,7 +12,7 @@ This repository requires NodeJS 14+
 
 ### INSTALL
 
-Install the EVM repository by navigating to the evm directory with
+Install the EVM repository by navigating to the evm directory with:
 
 `cd evm`
 
