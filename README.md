@@ -16,7 +16,7 @@ First clone the repo with:
 
 `git clone https://github.com/telosnetwork/native-oracle-bridge`
 
-Then navigate to the evm directory and run the following command:
+Then navigate to the `evm` directory and run the following command:
 
 `npm install`
 
@@ -29,9 +29,7 @@ Then navigate to the evm directory and run the following command:
 
 ### INSTALL
 
-Install the Native side by navigating to the native directory with:
-
-`cd ../native` or `cd native` if you are in the repository ROOT directory
+Navigate to the `native` directory and run the following command:
 
 ### TEST
 ### DEPLOY
