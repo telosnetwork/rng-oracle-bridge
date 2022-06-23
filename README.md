@@ -12,11 +12,11 @@ This repository requires NodeJS 14+
 
 ### INSTALL
 
-Install the EVM side by navigating to the evm directory with:
+First clone the repo with:
 
-`cd evm` from the repository ROOT directory
+`git clone https://github.com/telosnetwork/native-oracle-bridge`
 
-Then run the following command:
+Then navigate to the evm directory and run the following command:
 
 `npm install`
 
