@@ -1,5 +1,8 @@
 # Native Oracle <> EVM Bridge
 
+This repository includes two folders, the EVM side of the oracle bridge and its native side.
+Follow the instructions below to install it
+
 ## REQUIREMENTS
 
 This repository requires NodeJS 14+
