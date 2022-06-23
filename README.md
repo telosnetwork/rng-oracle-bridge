@@ -12,9 +12,9 @@ This repository requires NodeJS 14+
 
 ### INSTALL
 
-Install the EVM repository by navigating to the evm directory with:
+Install the EVM side by navigating to the evm directory with:
 
-`cd evm`
+`cd evm` from the repository ROOT directory
 
 Then run the following command:
 
@@ -28,6 +28,11 @@ Then run the following command:
 ## 2. DEPLOY NATIVE
 
 ### INSTALL
+
+Install the Native side by navigating to the native directory with:
+
+`cd ../native` or `cd native` if you are in the repository ROOT directory
+
 ### TEST
 ### DEPLOY
 
