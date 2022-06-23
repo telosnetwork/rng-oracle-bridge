@@ -22,19 +22,19 @@ Then navigate to the `evm` directory and run the following command:
 
 ### TEST
 
-Run tests with:
+Run the tests with:
 
 `npx hardhat test`
 
 ### DEPLOY
 
-Deploy with:
+Deploy the contract with:
 
 `npx hardhat deploy --network=testnet`
 
 ### VERIFY
 
-Verifiy with:
+Verify the contract  with:
 
 `npx hardhat sourcify --network=testnet`
 
