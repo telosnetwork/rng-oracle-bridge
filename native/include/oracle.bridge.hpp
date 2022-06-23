@@ -10,16 +10,16 @@
 using namespace std;
 using namespace eosio;
 
-CONTRACT OracleBridge : public contract {
+class [[eosio::contract("oracle.bridge")]] bridge : public contract {
 
 public:
-    OracleBridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds) {};
-    ~OracleBridge() {};
+    bridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds) {};
+    ~bridge() {};
 
     //======================== admin actions ========================
 
     // intialize the contract
-    ACTION init(string evm_contract);
+    ACTION init(string evm_contract, string app_version, name initial_admin);
 
     //set the contract version
     ACTION setversion(string new_version);
@@ -35,10 +35,18 @@ public:
     // Request a random value w/ native caller
     ACTION requestrand(uint64_t caller_id, uint64_t seed);
 
+    //======================== oracle type actions ========================
+
+    // add a new oracle type
+    ACTION upsertoracletype(string oracle_type);
+
+    // remove an oracle type
+    ACTION rmvoracletype(string oracle_type);
+
     //======================== oracle actions ========================
 
     // add a new oracle
-    ACTION upsertoracle(name oracle_name);
+    ACTION upsertoracle(name oracle_name, string oracle_type);
 
     // remove an oracle
     ACTION rmvoracle(name oracle_name);
@@ -51,6 +59,7 @@ public:
         string evm_contract;
         string version;
         name admin;
+
         EOSLIB_SERIALIZE(config, (evm_contract))
     };
     typedef singleton<name("config"), config> config_singleton;
@@ -59,9 +68,18 @@ public:
     //scope: self
     TABLE oracle {
         name oracle_name;
-
+        string oracle_type;
         uint64_t primary_key() const { return oracle_name.value; }
         EOSLIB_SERIALIZE(oracle, (oracle_name))
     };
     typedef multi_index<name("oracles"), oracle> oracles_table;
+
+    //oracles types
+    //scope: self
+    TABLE oracle_type {
+        string type_id;
+        uint64_t primary_key() const { return type_id.value; }
+        EOSLIB_SERIALIZE(oracle, (type_id))
+    };
+    typedef multi_index<name("oracles"), oracle> oracles_types_table;
 };
