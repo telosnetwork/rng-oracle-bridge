@@ -10,7 +10,7 @@ This repository requires NodeJS 14+
 ### TEST
 ### DEPLOY
 
-Save that address to configure the native contract next
+⚠️ **Save that address to configure the native contract next**
 
 ## 2. DEPLOY NATIVE
 
