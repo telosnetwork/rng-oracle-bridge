@@ -1,1 +1,1 @@
-# Native Oracle <> EVM Bridge :: NATIVE
+# Native Oracle <> EVM Bridge :: Native Side
