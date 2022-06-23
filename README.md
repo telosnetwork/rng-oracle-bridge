@@ -2,6 +2,8 @@
 
 ## REQUIREMENTS
 
+This repository requires NodeJS 14+
+
 ## EVM
 
 ### INSTALL
