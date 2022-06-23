@@ -81,5 +81,5 @@ public:
         uint64_t primary_key() const { return type_id.value; }
         EOSLIB_SERIALIZE(oracle, (type_id))
     };
-    typedef multi_index<name("oracles"), oracle> oracles_types_table;
+    typedef multi_index<name("oracles_types"), oracle> oracles_types_table;
 };
