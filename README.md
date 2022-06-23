@@ -11,6 +11,15 @@ This repository requires NodeJS 14+
 ## 1. DEPLOY EVM
 
 ### INSTALL
+
+Install the EVM repository by navigating to the evm directory with
+
+`cd evm`
+
+Then run the following command:
+
+`npm install`
+
 ### TEST
 ### DEPLOY
 
