@@ -19,7 +19,7 @@ public:
     //======================== admin actions ========================
 
     // intialize the contract
-    ACTION init(string evm_contract, string app_version, name initial_admin);
+    ACTION init(string evm_contract, string version, name initial_admin);
 
     //set the contract version
     ACTION setversion(string new_version);
