@@ -32,13 +32,13 @@ Deploy the contract with:
 
 `npx hardhat deploy --network=testnet`
 
+⚠️ **Save the address output in console to configure the native contract next**
+
 ### VERIFY
 
 Verify the contract  with:
 
 `npx hardhat sourcify --network=testnet`
-
-⚠️ **Save that address to configure the native contract next**
 
 ## 2. DEPLOY NATIVE
 
