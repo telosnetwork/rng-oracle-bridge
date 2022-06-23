@@ -21,7 +21,22 @@ Then navigate to the `evm` directory and run the following command:
 `npm install`
 
 ### TEST
+
+Run tests with:
+
+`npx hardhat test`
+
 ### DEPLOY
+
+Deploy with:
+
+`npx hardhat deploy --network=testnet`
+
+### VERIFY
+
+Verifiy with:
+
+`npx hardhat sourcify --network=testnet`
 
 ⚠️ **Save that address to configure the native contract next**
 
