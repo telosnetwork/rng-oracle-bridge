@@ -1,6 +1,6 @@
 # Native Oracle <> EVM Bridge
 
-This repository includes two folders, the [EVM side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) of the oracle bridge and its [native side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/native).
+This repository includes two folders, the [EVM side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) of the oracle bridge and its [Native side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/native).
 
 Follow the instructions below to install it
 
