@@ -58,7 +58,7 @@ Run the following command to start testing:
 
 `npm test`
 
-You can find and configure the tests in the `tests` directory. By default, they run on testnet.
+You can find and configure the tests in the `tests` directory. By default, they run on testnet but best practice would be a local node with system contracts and oracles setup.
 
 ### DEPLOY
 
