@@ -1,5 +1,6 @@
-const { EOSRpc, EOSApi } = require('../../test/utils/EOSJS_Instance').getInstance();
-const Contract = require('../../test/wrappers/Contract');
+const { EOSJS } = require('telos-native-testing');
+const Contract = require('telos-native-testing/wrappers/Contract');
+const { EOSRpc, EOSApi } = EOSJS.getInstance();
 
 class OracleBridge extends Contract {
     constructor(...args) {

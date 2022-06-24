@@ -1,5 +1,4 @@
 const OracleBridge = require('./wrappers/OracleBridge');
-const { Account } = require('telos_native_test_js');
 const config = require('./config.json');
 
 let bridge, owner, user;

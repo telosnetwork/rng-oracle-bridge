@@ -1,78 +1,55 @@
-#include "../include/oracle.bridge.hpp";
+#include "../include/orc.bridge.hpp";
 
 //======================== admin actions ==========================
-
-// intialize the contract
+// initialize the contract
 ACTION bridge::init(string evm_contract, string version, name initial_admin){
     // authenticate
     require_auth(get_self());
 
-    // open config singleton
-    config_singleton configs(get_self(), get_self().value);
-
     // validate
-    check(!configs.exists(), "contract already initialized");
     check(is_account(initial_admin), "initial admin account doesn't exist");
 
     // initialize
-    config initial_conf = {
-        evm_contract,
-        version,   //version
-        initial_admin, //admin
-    };
+    auto stored = config.get_or_create(get_self(), config_row);
+    stored.version = version;
+    stored.admin = initial_admin;
+    stored.evm_contract = evm_contract;
+    config.set(stored, get_self());
 
-    // set initial config
-    configs.set(initial_conf, get_self());
 };
 
 // set the contract version
 ACTION bridge::setversion(string new_version){
-    // open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
-
     // authenticate
-    require_auth(conf.admin);
+    require_auth(config.get().admin);
 
-    // change version
-    conf.app_version = new_version;
+    auto stored = config.get();
+    stored.version = new_version;
 
-    // set new config
-    configs.set(conf, get_self());
-
+    // modify
+    config.set(stored, get_self());
 };
 
 // set the bridge evm address
-ACTION bridge::setevmcontract(string new_contract){
-    //open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
-
-    //authenticate
-    require_auth(conf.admin);
-
-    //change version
-    conf.evm_contract = new_contract;
-
-    //set new config
-    configs.set(conf, get_self());
+ACTION bridge::setevmctc(string new_contract){
+    // authenticate
+    require_auth(config.get().admin);
+    auto stored = config.get();
+    stored.evm_contract = new_contract;
+    // modify
+    config.set(stored, get_self());
 
 };
 
 // set new contract admin
 ACTION bridge::setadmin(name new_admin){
-    //open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
+    // authenticate
+    require_auth(config.get().admin);
 
-    //authenticate
-    require_auth(conf.admin);
-
-    //change version
-    conf.admin = new_admin;
-
-    //set new config
-    configs.set(conf, get_self());
+    auto stored = config.get();
+    stored.admin = new_admin;
+    // modify
+    config.set(stored, get_self());
 };
 
 //======================== request actions ========================
@@ -86,11 +63,10 @@ ACTION bridge::requestrand(uint64_t caller_id, uint64_t seed)
 //======================== oracle type actions ========================
 
 // remove an oracle type
-ACTION bridge::rmvoracletype(string oracle_type)
+ACTION bridge::rmvorctype(name oracle_type)
 {
     // open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
+    auto conf = config.get();
 
     // authenticate
     require_auth(conf.admin);
@@ -100,16 +76,15 @@ ACTION bridge::rmvoracletype(string oracle_type)
     auto &orc_type = oracles_types.get(oracle_type.value, "oracle not found");
 
     // erase oracle
-    oracles.erase(orc_type);
+    oracles_types.erase(orc_type);
 
 };
 
 // add a new oracle type
-ACTION bridge::upsertoracletype(string oracle_type)
+ACTION bridge::upsertorctype(name oracle_type)
 {
     // open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
+    auto conf = config.get();
 
     // authenticate admin
     require_auth(conf.admin);
@@ -122,7 +97,7 @@ ACTION bridge::upsertoracletype(string oracle_type)
     {
         // emplace new oracle type
         oracles_types.emplace(conf.admin, [&](auto &col) {
-            col.type_id = oracle_type;
+            col.type_name = oracle_type;
         });
     }
 };
@@ -137,8 +112,7 @@ ACTION bridge::rmvoracle(name oracle_name)
     auto &oracle = oracles.get(oracle_name.value, "oracle not found");
 
     // open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
+    auto conf = config.get();
 
     // authenticate
     if (!has_auth(conf.admin))
@@ -152,8 +126,7 @@ ACTION bridge::rmvoracle(name oracle_name)
 ACTION bridge::upsertoracle(name oracle_name, string oracle_type)
 {
     // open config singleton, get config
-    config_singleton configs(get_self(), get_self().value);
-    auto conf = configs.get();
+    auto conf = config.get();
 
     // authenticate admin
     require_auth(conf.admin);

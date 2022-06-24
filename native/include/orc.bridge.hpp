@@ -5,15 +5,14 @@
 
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
-#include <eosio/crypto.hpp>
 
 using namespace std;
 using namespace eosio;
 
-class [[eosio::contract("oracle.bridge")]] bridge : public contract {
+class [[eosio::contract("orc.bridge")]] bridge : public contract {
 
 public:
-    bridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds) {};
+    bridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds), config(self, self.value) {};
     ~bridge() {};
 
     //======================== admin actions ========================
@@ -25,7 +24,7 @@ public:
     ACTION setversion(string new_version);
 
     //set the bridge evm address
-    ACTION setevmcontract(string evm_contract);
+    ACTION setevmctc(string new_contract);
 
     //set new contract admin
     ACTION setadmin(name new_admin);
@@ -38,10 +37,10 @@ public:
     //======================== oracle type actions ========================
 
     // add a new oracle type
-    ACTION upsertoracletype(string oracle_type);
+    ACTION upsertorctype(name oracle_type);
 
     // remove an oracle type
-    ACTION rmvoracletype(string oracle_type);
+    ACTION rmvorctype(name oracle_type);
 
     //======================== oracle actions ========================
 
@@ -55,14 +54,14 @@ public:
     //======================== contract tables ========================
     //config singleton
     //scope: self
-    TABLE config {
+    TABLE configtable {
         string evm_contract;
         string version;
         name admin;
-
-        EOSLIB_SERIALIZE(config, (evm_contract))
-    };
-    typedef singleton<name("config"), config> config_singleton;
+        EOSLIB_SERIALIZE(configtable, (evm_contract)(version)(admin))
+    } config_row;
+    typedef singleton<name("configtable"), configtable> config_singleton;
+    config_singleton config;
 
     //oracles
     //scope: self
@@ -70,16 +69,16 @@ public:
         name oracle_name;
         string oracle_type;
         uint64_t primary_key() const { return oracle_name.value; }
-        EOSLIB_SERIALIZE(oracle, (oracle_name))
+        EOSLIB_SERIALIZE(oracle, (oracle_name)(oracle_type))
     };
     typedef multi_index<name("oracles"), oracle> oracles_table;
 
     //oracles types
     //scope: self
     TABLE oracle_type {
-        string type_id;
-        uint64_t primary_key() const { return type_id.value; }
-        EOSLIB_SERIALIZE(oracle, (type_id))
+        name type_name;
+        uint64_t primary_key() const { return type_name.value; }
+        EOSLIB_SERIALIZE(oracle_type, (type_name))
     };
-    typedef multi_index<name("oracles_types"), oracle> oracles_types_table;
+    typedef multi_index<name("oracletypes"), oracle_type> oracles_types_table;
 };
