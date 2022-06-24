@@ -52,12 +52,20 @@ ACTION bridge::setadmin(name new_admin){
     config.set(stored, get_self());
 };
 
-//======================== request actions ========================
+//======================== core actions ========================
 
-// request a random value w/ native caller
-ACTION bridge::requestrand(uint64_t caller_id, uint64_t seed)
+// request
+ACTION bridge::request(uint64_t caller_id)
 {
+    // GET ORACLE TYPE & FIND AN ORACLE (CHECK IS HEALTHY ?) TO CALL FROM CONFIG
+    // CALL ORACLE ACCORDING TO ORACLE TYPE
+};
 
+// receive callback
+ACTION bridge::receive(uint64_t caller_id)
+{
+    // USE INLINE ACTION TO MAKE THIS AN UNIVERSAL RECEIVER ?
+    // OR IMPLEMENT SPECIFIC FUNCTION FOR EACH ORACLE (BAD)
 };
 
 //======================== oracle type actions ========================

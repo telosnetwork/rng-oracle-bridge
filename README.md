@@ -46,7 +46,20 @@ Verify the contract  with:
 
 Navigate to the `native` directory and run the following command:
 
+`npm install`
+
+### BUILD
+
+Run the following command:
+
 ### TEST
+
+Run the following command to start testing:
+
+`npm test`
+
+You can find the `tests` in the tests directory
+
 ### DEPLOY
 
 ## 3. MAKE A REQUEST !

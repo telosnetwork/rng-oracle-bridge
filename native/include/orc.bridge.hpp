@@ -29,10 +29,10 @@ public:
     //set new contract admin
     ACTION setadmin(name new_admin);
 
-    //======================== request actions ========================
+    //======================== core actions ========================
 
-    // Request a random value w/ native caller
-    ACTION requestrand(uint64_t caller_id, uint64_t seed);
+    ACTION request(uint64_t caller_id);
+    ACTION receive(uint64_t caller_id);
 
     //======================== oracle type actions ========================
 
