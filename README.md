@@ -66,6 +66,8 @@ You can find and configure the tests in the `tests` directory. By default, they 
 
 ## 3. START THE NATIVE LISTENER
 
+Still from the `native` directory, use `pm2` to start the listener script:
+
 ## 4. MAKE A REQUEST !
 
 Deploy a contract that calls the newly deployed `NativeOracleBridge` EVM contract's `request()` function and implements a callback function in order to receive the oracle's answer (confer to the specific oracle documentation for arguments returned). Refer to the `NativeOracleBridgeTester` EVM contract for an example.
