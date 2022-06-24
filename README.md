@@ -8,7 +8,7 @@ Follow the instructions below, in the right order, to deploy it
 
 This repository requires NodeJS 14+
 
-## 1. DEPLOY EVM
+## 1. DEPLOY THE EVM CONTRACT
 
 ### INSTALL
 
@@ -40,7 +40,7 @@ Verify the contract  with:
 
 `npx hardhat sourcify --network=testnet`
 
-## 2. DEPLOY NATIVE
+## 2. DEPLOY THE NATIVE CONTRACT
 
 ### INSTALL
 
@@ -62,9 +62,9 @@ You can find and configure the tests in the `tests` directory. By default, they 
 
 ### DEPLOY
 
-### START LISTENER
+## 3. START THE NATIVE LISTENER
 
-## 3. MAKE A REQUEST !
+## 4. MAKE A REQUEST !
 
 Deploy a contract that calls the newly deployed `NativeOracleBridge` EVM contract's `request()` function and implements a callback function in order to receive the oracle's answer (confer to the specific oracle documentation for arguments returned). Refer to the `NativeOracleBridgeTester` EVM contract for an example.
 
