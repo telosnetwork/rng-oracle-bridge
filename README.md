@@ -66,7 +66,7 @@ You can find and configure the tests in the `tests` directory. By default, they 
 
 ## 3. START THE NATIVE LISTENER
 
-Still from the `native` directory, use `pm2` to start the listener script:
+From the `native` directory, use `pm2` to start the listener script:
 
 ## 4. MAKE A REQUEST !
 
