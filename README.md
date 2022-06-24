@@ -8,15 +8,17 @@ Follow the instructions below, in the right order, to deploy it
 
 This repository requires NodeJS 14+
 
+## INSTALL
+
+Clone the repo with:
+
+`git clone https://github.com/telosnetwork/native-oracle-bridge`
+
 ## 1. DEPLOY THE EVM CONTRACT
 
 ### INSTALL
 
-First clone the repo with:
-
-`git clone https://github.com/telosnetwork/native-oracle-bridge`
-
-Then navigate to the `evm` directory and run the following command:
+Navigate to the `evm` directory and run the following command:
 
 `npm install`
 
