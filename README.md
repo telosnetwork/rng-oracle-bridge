@@ -22,13 +22,13 @@ Navigate to the `evm` directory and run the following command:
 
 `npm install`
 
-### TEST
+### BUILD & TEST
 
 Run the tests with:
 
 `npx hardhat test`
 
-### DEPLOY
+### BUILD & DEPLOY
 
 Deploy the contract with:
 
@@ -62,7 +62,7 @@ Run the following command to start testing:
 
 You can find and configure the tests in the `tests` directory. By default, they run on testnet but best practice would be using your local node with system contracts and our native oracles setup.
 
-### DEPLOY
+### BUILD & DEPLOY
 
 ## 3. START THE NATIVE LISTENER
 
