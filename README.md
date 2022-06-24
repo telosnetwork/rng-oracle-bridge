@@ -50,6 +50,10 @@ Navigate to the `native` directory and run the following command:
 
 `npm install`
 
+### CONFIGURE
+
+Edit the following values in the `env` file:
+
 ### BUILD
 
 Run the following command:
