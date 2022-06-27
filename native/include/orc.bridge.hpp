@@ -37,7 +37,7 @@ public:
     //======================== oracle type actions ========================
 
     // add a new oracle type
-    ACTION upsertorctype(name oracle_type);
+    ACTION upsertorctype(name type_name, string serialized_tx);
 
     // remove an oracle type
     ACTION rmvorctype(name oracle_type);
@@ -52,8 +52,7 @@ public:
 
 
     //======================== contract tables ========================
-    //config singleton
-    //scope: self
+    // Config
     TABLE configtable {
         string evm_contract;
         string version;
@@ -63,20 +62,33 @@ public:
     typedef singleton<name("configtable"), configtable> config_singleton;
     config_singleton config;
 
-    //oracles
-    //scope: self
+    // Request
+    TABLE request {
+        name call_id;
+        name caller;
+        name oracle_type;
+
+        uint64_t primary_key() const { return call_id.value; }
+        EOSLIB_SERIALIZE(request, (call_id)(caller)(oracle_type))
+    };
+    typedef multi_index<name("requests"), request> requests_table;
+
+    // Oracle
     TABLE oracle {
         name oracle_name;
-        string oracle_type;
+        name oracle_type;
+
         uint64_t primary_key() const { return oracle_name.value; }
+        uint64_t by_type( ) const { return secondary.value; }
         EOSLIB_SERIALIZE(oracle, (oracle_name)(oracle_type))
     };
-    typedef multi_index<name("oracles"), oracle> oracles_table;
+    typedef multi_index<"oracles"_n, oracle, indexed_by<"typeid"_n, const_mem_fun<test_table, uint64_t, &oracles_table::by_type>>> oracles_table;
 
-    //oracles types
-    //scope: self
+    // Oracle Type
     TABLE oracle_type {
         name type_name;
+        string serialized_tx;
+
         uint64_t primary_key() const { return type_name.value; }
         EOSLIB_SERIALIZE(oracle_type, (type_name))
     };
