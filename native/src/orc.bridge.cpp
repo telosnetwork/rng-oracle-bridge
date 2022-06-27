@@ -135,10 +135,17 @@ ACTION bridge::rmvorctype(name oracle_type)
 
     // authenticate
     require_auth(conf.admin);
-    // TODO: open oracles table, find oracle by type and delete too
 
+    // find type
     oracles_types_table oracles_types(get_self(), get_self().value);
     auto &orc_type = oracles_types.get(oracle_type.value, "oracle type not found");
+
+    // find oracles of that type
+    oracles_table oracles(get_self(), get_self().value);
+    auto oracles_idx = oracles.get_index<"typeid"_n>(oracle_type);
+    for ( auto itr = oracles_idx.begin(); itr != oracles_idx.end(); itr++ ) {
+        oracles.erase(itr);
+    }
 
     // erase oracle
     oracles_types.erase(orc_type);
