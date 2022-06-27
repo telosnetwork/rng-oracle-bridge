@@ -72,7 +72,7 @@ You can find and configure the tests in the `tests` directory. By default, they 
 
 From the `native` directory, use `pm2` to start the listener script:
 
-`pm2 scripts/AccountStateListener.js'
+`pm2 scripts/AccountStateListener.js`
 
 ## 4. MAKE A REQUEST !
 
