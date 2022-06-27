@@ -29,10 +29,10 @@ public:
     //set new contract admin
     ACTION setadmin(name new_admin);
 
-    //======================== core actions ========================
+    //======================== RNG Oracle actions ========================
 
-    ACTION request(uint64_t caller_id);
-    ACTION receive(uint64_t caller_id);
+    ACTION requestrand(name call_id, string seed, name caller);
+    ACTION receiverand(name call_id, uint64_t number);
 
     //======================== oracle type actions ========================
 
@@ -45,7 +45,7 @@ public:
     //======================== oracle actions ========================
 
     // add a new oracle
-    ACTION upsertoracle(name oracle_name, string oracle_type);
+    ACTION upsertoracle(name oracle_name, name oracle_type);
 
     // remove an oracle
     ACTION rmvoracle(name oracle_name);
@@ -79,10 +79,10 @@ public:
         name oracle_type;
 
         uint64_t primary_key() const { return oracle_name.value; }
-        uint64_t by_type( ) const { return secondary.value; }
+        uint64_t by_type() const { return oracle_type.value; }
         EOSLIB_SERIALIZE(oracle, (oracle_name)(oracle_type))
     };
-    typedef multi_index<"oracles"_n, oracle, indexed_by<"typeid"_n, const_mem_fun<test_table, uint64_t, &oracles_table::by_type>>> oracles_table;
+    typedef multi_index<"oracle"_n, oracle, indexed_by<"bytype"_n, const_mem_fun<oracle, uint64_t, &oracle::by_type>>> oracles_table;
 
     // Oracle Type
     TABLE oracle_type {
