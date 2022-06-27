@@ -12,6 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "telos-native-testing": "^1.0.7"
+    "telos-native-testing": "^1.0.8"
   }
 }

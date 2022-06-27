@@ -6,10 +6,11 @@ let bridge, owner, user;
 before(async () => {
     bridge = new OracleBridge("orc.bridge")
     await bridge.deploy().then(async() => {
-        await bridge.init("0x9a469d1e668425907548228EA525A661FF3BFa2B", "1", 'orc.bridge')
+        await bridge.init("0x9a469d1e668425907548228EA525A661FF3BFa2B", "1", "orc.bridge")
     }).catch(async (e) => {
-        console.log("  ", e.message[0].toUpperCase() + e.message.substring(1))
+        console.log(" ", e.message[0].toUpperCase() + e.message.substring(1) + "\n")
     })
+    bridge.connect("orc.bridge");
 })
 describe("OracleBridge Contract", function () {
     describe(":: Admin", function () {
@@ -24,7 +25,6 @@ describe("OracleBridge Contract", function () {
                 assert(false, "Was able to set contract")
             } catch (e) { }
             expect(await bridge.getEVMContract()).to.be.equal("0x9a469d1e668425907548228EA525A661FF3BFa22");
-            console.log(await bridge.getEVMContract())
         });
         it("Should be able to add an oracle type" , async function () {
             await bridge.addOracleType("rng");
