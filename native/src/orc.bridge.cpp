@@ -2,18 +2,44 @@
 
 //======================== admin actions ==========================
 // initialize the contract
-ACTION bridge::init(string evm_contract, string version, name initial_admin){
+ACTION bridge::init(string evm_contract, string version, name admin, name oracle, string serialized_tx){
     // authenticate
     require_auth(get_self());
 
     // validate
-    check(is_account(initial_admin), "initial admin account doesn't exist");
+    check(is_account(admin), "initial admin account doesn't exist");
 
     // initialize
     auto stored = config.get_or_create(get_self(), config_row);
     stored.version = version;
-    stored.admin = initial_admin;
+    stored.admin = admin;
+    stored.oracle = oracle;
+    stored.serialized_tx = serialized_tx;
     stored.evm_contract = evm_contract;
+    config.set(stored, get_self());
+};
+
+// set the oracle
+ACTION bridge::setserialtx(string new_serialized_tx){
+    // authenticate
+    require_auth(config.get().admin);
+
+    auto stored = config.get();
+    stored.serialized_tx = new_serialized_tx;
+
+    // modify
+    config.set(stored, get_self());
+};
+
+// set the oracle
+ACTION bridge::setoracle(name new_oracle){
+    // authenticate
+    require_auth(config.get().admin);
+
+    auto stored = config.get();
+    stored.oracle = new_oracle;
+
+    // modify
     config.set(stored, get_self());
 };
 
@@ -53,48 +79,46 @@ ACTION bridge::setadmin(name new_admin){
     config.set(stored, get_self());
 };
 
+//======================== Request actions ========================
+
+// remove a request
+ACTION bridge::rmvrequest(name call_id)
+{
+    requests_table requests(get_self(), get_self().value);
+    auto itr = requests.find(call_id.value);
+    check(itr != requests.end(), "Call ID not found");
+    requests.erase(itr);
+};
+
 //======================== RNG Oracle actions ========================
 
 // request
-ACTION bridge::requestrand(name call_id, string seed, name caller)
+ACTION bridge::requestrand(name call_id, uint64_t seed, string caller)
 {
-    // GET ORACLE TYPE & FIND AN ORACLE
-    oracles_table oracles(get_self(), get_self().value);
-    name oracle_type = "rng"_n;
-    auto idx = oracles.get_index<"bytype"_n>();
-    auto oraclesRNG = idx.find(oracle_type.value);
-    check(oraclesRNG != idx.end() , "No oracles found for type `rng`");
-
     // CHECK REQUEST HAS UNIQUE CALL ID
     requests_table requests(get_self(), get_self().value);
     auto itr = requests.find(call_id.value);
-    check(itr != requests.end(), "Call ID already exists");
+    check(itr == requests.end(), "Call ID already exists");
 
     // ADD TO REQUESTS
     requests.emplace(get_self(), [&](auto& r) {
         r.call_id = call_id;
         r.caller = caller;
-        r.oracle_type = "rng"_n;
     });
 
-    // SEND ACTION TO FIRST ORACLE THAT ACCEPTS IT
-    for ( auto itr = oraclesRNG.begin(); itr != oraclesRNG.end(); itr++ ) {
-          // TODO: add a bool return on rng.oracle action so we can iterate over those that don't work / or check the rng.oracle request table ??
-          action(
-            permission_level{get_self(),"active"_n},
-            itr->oracle_name,
-            "requestrand"_n,
-            std::make_tuple(call_id, seed, caller)
-          ).send();
+    // open config singleton
+    auto conf = config.get();
 
-          // if(result){
-              itr = idx.end();
-          // }
-    }
+    action(
+        permission_level{get_self(),"active"_n},
+        conf.oracle,
+        "requestrand"_n,
+        std::make_tuple(call_id, seed, get_self())
+    ).send();
 };
 
 // receive callback
-ACTION bridge::receiverand(name call_id, uint64_t number)
+ACTION bridge::receiverand(name call_id, checksum256 number)
 {
     // open config singleton
     auto conf = config.get();
@@ -103,17 +127,15 @@ ACTION bridge::receiverand(name call_id, uint64_t number)
     requests_table requests(get_self(), get_self().value);
     auto &request = requests.get(call_id.value, "Request could not be found");
 
-    // find the serialized tx for rng type
-    oracles_types_table oracles_types(get_self(), get_self().value);
-    name orc_type = "rng"_n;
-    auto oracle_type = oracles_types.find(orc_type.value);
-    check(oracle_type != oracles_types.end(), "Oracle type could not be found");
-    string raw_evm_tx = oracle_type->serialized_tx;
+    // convert checksum256 to string
+    auto num = number.extract_as_byte_array();
+    string num_str( reinterpret_cast<char *>( num.data() ), num.size() );
 
+    string raw_evm_tx = conf.serialized_tx;
     // replace placeholders with correct tx parameters (regex too heavy)
-    raw_evm_tx.replace(31, 40, request.caller.to_string()); // Place caller
+    raw_evm_tx.replace(31, 40, request.caller); // Place caller
     raw_evm_tx.replace(287, 40, request.call_id.to_string()); // Place call_id
-    raw_evm_tx.replace(543, 40, "333"); // Place number
+    raw_evm_tx.replace(543, 40, num_str); // Place number
 
     // SEND RESULT TO EVM
       action(
@@ -126,111 +148,4 @@ ACTION bridge::receiverand(name call_id, uint64_t number)
     // DELETE REQUEST
     requests.erase(request);
 
-};
-
-//======================== oracle type actions ========================
-
-// remove an oracle type
-ACTION bridge::rmvorctype(name oracle_type)
-{
-    // open config singleton, get config
-    auto conf = config.get();
-
-    // authenticate
-    require_auth(conf.admin);
-
-    // find type
-    oracles_types_table oracles_types(get_self(), get_self().value);
-    auto &orc_type = oracles_types.get(oracle_type.value, "oracle type not found");
-
-    // find oracles of that type
-    oracles_table oracles(get_self(), get_self().value);
-    auto oracles_idx = oracles.get_index<"bytype"_n>();
-    auto oracles_found = oracles_idx.lower_bound(oracle_type.value);
-    for ( auto itr = oracles_found.begin(); itr != oracles_found.end(); itr++ ) {
-        oracles.erase(itr);
-    }
-
-    // erase oracle
-    oracles_types.erase(orc_type);
-
-};
-
-// add a new oracle type
-ACTION bridge::upsertorctype(name oracle_type, string serialized_tx)
-{
-    // open config singleton, get config
-    auto conf = config.get();
-
-    // authenticate admin
-    require_auth(conf.admin);
-
-    // open oracles types table, find oracle type
-    oracles_types_table oracles_types(get_self(), get_self().value);
-    auto itr = oracles_types.find(oracle_type.value);
-
-    if (itr == oracles_types.end())
-    {
-        // emplace new oracle type
-        oracles_types.emplace(conf.admin, [&](auto &row) {
-            row.type_name = oracle_type;
-            row.serialized_tx = serialized_tx;
-        });
-    } else {
-        oracles_types.modify(itr, conf.admin, [&]( auto& row ) {
-            row.serialized_tx = serialized_tx;
-        });
-    }
-};
-
-//======================== oracle actions ========================
-
-// remove an oracle
-ACTION bridge::rmvoracle(name oracle_name)
-{
-    // open config singleton, get config
-    auto conf = config.get();
-
-    // authenticate
-    require_auth(conf.admin);
-
-    // open oracles table, find oracle
-    oracles_table oracles(get_self(), get_self().value);
-    auto &oracle = oracles.get(oracle_name.value, "oracle not found");
-
-    // erase oracle
-    oracles.erase(oracle);
-};
-
-// add a new oracle
-ACTION bridge::upsertoracle(name oracle_name, name oracle_type)
-{
-    // open config singleton, get config
-    auto conf = config.get();
-
-    // authenticate admin
-    require_auth(conf.admin);
-
-    // check account exists
-    check(is_account(oracle_name), "Oracle does not exist, please verify contract name");
-
-    // open oracles table, find oracle
-    oracles_table oracles(get_self(), get_self().value);
-    auto itr = oracles.find(oracle_name.value);
-
-    if (itr == oracles.end())
-    {
-        // emplace new oracle
-        oracles.emplace(conf.admin, [&](auto &col) {
-            col.oracle_name = oracle_name;
-            col.oracle_type = oracle_type;
-        });
-    }
-    else
-    {
-        // update oracle
-        oracles.modify(*itr, conf.admin, [&](auto &col) {
-            col.oracle_type = oracle_type;
-        });
-    }
 };

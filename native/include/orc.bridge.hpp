@@ -9,6 +9,7 @@
 using namespace std;
 using namespace eosio;
 
+
 class [[eosio::contract("orc.bridge")]] bridge : public contract {
 
 public:
@@ -18,7 +19,7 @@ public:
     //======================== admin actions ========================
 
     // intialize the contract
-    ACTION init(string evm_contract, string version, name initial_admin);
+    ACTION init(string evm_contract, string version, name admin, name oracle, string serialized_tx);
 
     //set the contract version
     ACTION setversion(string new_version);
@@ -29,35 +30,31 @@ public:
     //set new contract admin
     ACTION setadmin(name new_admin);
 
+    //set new oracle contract
+    ACTION setoracle(name new_oracle);
+
+    //set new serialized transaction string
+    ACTION setserialtx(string new_serialized_tx);
+
+    //======================== Request actions ========================
+
+    ACTION rmvrequest(name call_id);
+
     //======================== RNG Oracle actions ========================
 
-    ACTION requestrand(name call_id, string seed, name caller);
-    ACTION receiverand(name call_id, uint64_t number);
-
-    //======================== oracle type actions ========================
-
-    // add a new oracle type
-    ACTION upsertorctype(name type_name, string serialized_tx);
-
-    // remove an oracle type
-    ACTION rmvorctype(name oracle_type);
-
-    //======================== oracle actions ========================
-
-    // add a new oracle
-    ACTION upsertoracle(name oracle_name, name oracle_type);
-
-    // remove an oracle
-    ACTION rmvoracle(name oracle_name);
-
+    ACTION requestrand(name call_id, uint64_t seed, string caller);
+    ACTION receiverand(name call_id, checksum256 number);
 
     //======================== contract tables ========================
     // Config
     TABLE configtable {
         string evm_contract;
-        string version;
+        string serialized_tx;
+        name oracle;
         name admin;
-        EOSLIB_SERIALIZE(configtable, (evm_contract)(version)(admin))
+        string version;
+
+        EOSLIB_SERIALIZE(configtable, (evm_contract)(serialized_tx)(oracle)(admin)(version))
     } config_row;
     typedef singleton<name("configtable"), configtable> config_singleton;
     config_singleton config;
@@ -65,32 +62,11 @@ public:
     // Request
     TABLE request {
         name call_id;
-        name caller;
-        name oracle_type;
+        string caller;
 
         uint64_t primary_key() const { return call_id.value; }
-        EOSLIB_SERIALIZE(request, (call_id)(caller)(oracle_type))
+        EOSLIB_SERIALIZE(request, (call_id)(caller))
     };
     typedef multi_index<name("requests"), request> requests_table;
 
-    // Oracle
-    TABLE oracle {
-        name oracle_name;
-        name oracle_type;
-
-        uint64_t primary_key() const { return oracle_name.value; }
-        uint64_t by_type() const { return oracle_type.value; }
-        EOSLIB_SERIALIZE(oracle, (oracle_name)(oracle_type))
-    };
-    typedef multi_index<"oracle"_n, oracle, indexed_by<"bytype"_n, const_mem_fun<oracle, uint64_t, &oracle::by_type>>> oracles_table;
-
-    // Oracle Type
-    TABLE oracle_type {
-        name type_name;
-        string serialized_tx;
-
-        uint64_t primary_key() const { return type_name.value; }
-        EOSLIB_SERIALIZE(oracle_type, (type_name))
-    };
-    typedef multi_index<name("oracletypes"), oracle_type> oracles_types_table;
 };

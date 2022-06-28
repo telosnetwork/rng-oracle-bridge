@@ -1,17 +1,19 @@
 {
-  "name": "native-oracle-bridge",
+  "name": "contract",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "description": "Testing contract smart contract with Hydra",
+  "main": "",
   "scripts": {
-    "test": "node tests/index.js"
+    "test": "jest"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "telos-native-testing": "^1.0.8"
-  }
+    "@klevoya/hydra": "*",
+    "jest": "^25.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": ""
 }
