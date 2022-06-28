@@ -60,11 +60,11 @@ Run the following command:
 
 ### TEST
 
-Run the following command to start testing:
+Run the following command to start testing with the Hydra testing suite:
 
 `npm test`
 
-You can find and configure the tests in the `tests` directory. By default, they run on testnet but best practice would be using your local node with system contracts and our native oracles setup.
+You can find the tests in the `tests` directory.
 
 ### DEPLOY
 
