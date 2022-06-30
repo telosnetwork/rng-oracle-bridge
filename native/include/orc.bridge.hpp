@@ -19,7 +19,7 @@ public:
     //======================== Admin actions ========================
 
     // intialize the contract
-    ACTION init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string serialized_tx);
+    ACTION init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature);
 
     //set the contract version
     ACTION setversion(string new_version);
@@ -33,8 +33,8 @@ public:
     //set new oracle contract
     ACTION setoracle(name new_oracle);
 
-    //set new serialized transaction string
-    ACTION setserialtx(string new_serialized_tx);
+    //set new function signature string
+    ACTION setfnsig(string new_function_signature);
 
     //======================== Request actions ========================
 
@@ -81,11 +81,11 @@ public:
     // Config
     TABLE configtable {
         eosio::checksum160 evm_contract;
-        string serialized_tx;
+        string function_signature;
         name oracle;
         name admin;
         string version;
-        EOSLIB_SERIALIZE(configtable, (evm_contract)(serialized_tx)(oracle)(admin)(version));
+        EOSLIB_SERIALIZE(configtable, (evm_contract)(function_signature)(oracle)(admin)(version));
     } config_row;
     typedef singleton<name("configtable"), configtable> config_singleton;
     config_singleton config;

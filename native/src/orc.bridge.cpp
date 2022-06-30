@@ -19,12 +19,12 @@ ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin,
     config.set(stored, get_self());
 };
 // set the oracle
-ACTION bridge::setserialtx(string new_serialized_tx){
+ACTION bridge::setfnsig(string new_function_signature){
     // authenticate
     require_auth(config.get().admin);
 
     auto stored = config.get();
-    stored.serialized_tx = new_serialized_tx;
+    stored.function_signature = new_function_signature;
 
     // modify
     config.set(stored, get_self());
@@ -141,8 +141,10 @@ ACTION bridge::receiverand(uint64_t caller_id, checksum256 random)
     auto &request = requests.get(caller_id, "Request could not be found");
 
     // Generate EVM serialized transaction
-    string raw_evm_tx = conf.serialized_tx;
-
+    string function_signature = conf.function_signature;
+    string gas_limit = conf.gas_limit;
+    string gas_price = conf.gas_price;
+    auto nonce = account.nonce;
     auto caller = rlp::encode(eosio_evm::checksum160ToAddress(request.caller));
     string data[1];
     data[0] = to_string(eosio_evm::checksum256ToValue(random));
