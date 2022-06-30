@@ -1,2 +1,10 @@
-contracts: {}
+contracts:
+  orc.bridge:
+    abi: build/orc.bridge.abi
+    name: orc.bridge
+    wasm:  build/orc.bridge.wasm
+  rng.oracle:
+    name: rng.oracle
+    abi:  tests/lib/rng.oracle.abi
+    wasm: tests/lib/rng.oracle.wasm
 options: null
