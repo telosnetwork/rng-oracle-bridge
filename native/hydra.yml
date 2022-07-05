@@ -5,6 +5,6 @@ contracts:
     wasm:  build/orc.bridge.wasm
   rng.oracle:
     name: rng.oracle
-    abi:  tests/lib/rng.oracle.abi
-    wasm: tests/lib/rng.oracle.wasm
+    abi:  tests/libs/rng.oracle.abi
+    wasm: tests/libs/rng.oracle.wasm
 options: null

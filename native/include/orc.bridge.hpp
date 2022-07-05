@@ -6,9 +6,12 @@
 #include <eosio/singleton.hpp>
 #include <eosio.evm/eosio.evm.hpp>
 
+#define EVM_CONTRACT name("eosio.evm")
+
 using namespace std;
 using namespace eosio;
 using namespace eosio_evm;
+
 
 class [[eosio::contract("orc.bridge")]] bridge : public contract {
 
@@ -19,7 +22,7 @@ public:
     //======================== Admin actions ========================
 
     // intialize the contract
-    ACTION init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature);
+    ACTION init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature, bigint::checksum256 gas_limit);
 
     //set the contract version
     ACTION setversion(string new_version);
@@ -36,6 +39,9 @@ public:
     //set new function signature string
     ACTION setfnsig(string new_function_signature);
 
+    //set new gas limit
+    ACTION setgaslimit(bigint::checksum256 new_gas_limit);
+
     //======================== Request actions ========================
 
     ACTION rmvrequest(uint64_t request_id);
@@ -46,48 +52,25 @@ public:
     ACTION receiverand(uint64_t caller_id, checksum256 random);
 
     //======================== eosio.evm tables =======================
-    struct [[eosio::table, eosio::contract("eosio.evm")]] Account {
-        uint64_t index;
-        eosio::checksum160 address;
-        eosio::name account;
-        uint64_t nonce;
-        std::vector<uint8_t> code;
-        eosio::checksum256 balance;
-
-        Account () = default;
-        Account (uint256_t _address): address(eosio_evm::addressToChecksum160(_address)) {}
-        uint64_t primary_key() const { return index; };
-
-        uint64_t get_account_value() const { return account.value; };
-        uint256_t get_address() const { return eosio_evm::checksum160ToAddress(address); };
-
-        // TODO: make this work if we need to lookup EVM balances, which we don't for this contract
-        //uint256_t get_balance() const { return balance; };
-        //bool is_empty() const { return nonce == 0 && balance == 0 && code.size() == 0; };
-        uint64_t get_nonce() const { return nonce; };
-        std::vector<uint8_t> get_code() const { return code; };
-
-        eosio::checksum256 by_address() const { return eosio_evm::pad160(address); };
-
-        EOSLIB_SERIALIZE(Account, (index)(address)(account)(nonce)(code)(balance));
-    };
-
     typedef eosio::multi_index<"account"_n, Account,
-            eosio::indexed_by<eosio::name("byaddress"), eosio::const_mem_fun<Account, eosio::checksum256, &Account::by_address>>,
-    eosio::indexed_by<eosio::name("byaccount"), eosio::const_mem_fun<Account, uint64_t, &Account::get_account_value>>
+        eosio::indexed_by<eosio::name("byaddress"), eosio::const_mem_fun<Account, eosio::checksum256, &Account::by_address>>,
+        eosio::indexed_by<eosio::name("byaccount"), eosio::const_mem_fun<Account, uint64_t, &Account::get_account_value>>
     > account_table;
 
-    //======================== Contract tables ========================
+    //======================== Tables ========================
     // Config
     TABLE configtable {
         eosio::checksum160 evm_contract;
         string function_signature;
+        bigint::checksum256 gas_limit;
         name oracle;
         name admin;
         string version;
-        EOSLIB_SERIALIZE(configtable, (evm_contract)(function_signature)(oracle)(admin)(version));
+
+        EOSLIB_SERIALIZE(configtable, (evm_contract)(function_signature)(gas_limit)(oracle)(admin)(version));
     } config_row;
-    typedef singleton<name("configtable"), configtable> config_singleton;
+
+    typedef singleton<"configtable"_n, configtable> config_singleton;
     config_singleton config;
 
     // Request
@@ -99,12 +82,29 @@ public:
         bigint::checksum256 min;
 
         uint64_t primary_key() const { return request_id; };
-        uint256_t get_min() const { return min; };
-        uint256_t get_max() const { return max; };
-        uint256_t get_call_id() const { return call_id; };
+        uint256_t getMin() const { return min; };
+        uint256_t getMax() const { return max; };
+        uint256_t getCallId() const { return call_id; };
 
         EOSLIB_SERIALIZE(request, (request_id)(call_id)(caller)(max)(min));
     };
     typedef multi_index<name("requests"), request> requests_table;
 
+    //===================== Test actions ===================================
+    #if (TESTING == true)
+        ACTION clearall()
+        {
+          require_auth(get_self());
+          requests_table requests(get_self(), get_self().value);
+          auto itr = requests.end();
+          while (requests.begin() != itr)
+          {
+            itr = requests.erase(--itr);
+          }
+          if (config.exists())
+          {
+            config.remove();
+          }
+        }
+    #endif
 };

@@ -6,9 +6,12 @@ describe("orc.bridge", () => {
     let blockchain = new Blockchain(config);
     let bridge = blockchain.createAccount(`orc.bridge`);
     let oracle = blockchain.createAccount(`rng.oracle`);
+    let oracle1 = blockchain.createAccount(`rngoracle1`);
+    let oracle2 = blockchain.createAccount(`rngoracle2`);
+    let oracle3 = blockchain.createAccount(`rngoracle3`);
     beforeAll(async () => {
-        oracle.setContract(blockchain.contractTemplates[`rng.oracle`]);
-        oracle.updateAuth(`active`, `owner`, {
+        await oracle.setContract(blockchain.contractTemplates[oracle.accountName]);
+        await oracle.updateAuth(`child`, `active`, {
             accounts: [
                 {
                     permission: {
@@ -19,8 +22,12 @@ describe("orc.bridge", () => {
                 }
             ]
         });
-        bridge.setContract(blockchain.contractTemplates[`orc.bridge`]);
-        bridge.updateAuth(`active`, `owner`, {
+        await oracle.contract.init({ app_name: `Oracle RNG`, app_version: `3`, initial_admin: oracle.accountName });
+        await oracle.contract.upsertoracle({oracle_name: oracle1.accountName, pub_key:  `EOS6yxMMBu5ZAvk85x4Vhd3CpwYaHfvyvs1chvuf7JREnbfVUxmD2`});
+        await oracle.contract.upsertoracle({oracle_name: oracle2.accountName, pub_key:  `EOS6yxMMBu5ZAvk85x4Vhd3CpwYaHfvyvs1chvuf7JREnbfVUxmD3`});
+        await oracle.contract.upsertoracle({oracle_name: oracle3.accountName, pub_key:  `EOS6yxMMBu5ZAvk85x4Vhd3CpwYaHfvyvs1chvuf7JREnbfVUxmD4`});
+        await bridge.setContract(blockchain.contractTemplates[bridge.accountName]);
+        await bridge.updateAuth(`child`, `active`, {
             accounts: [
                 {
                     permission: {
@@ -33,12 +40,12 @@ describe("orc.bridge", () => {
         });
     });
     beforeEach(async () => {
-        bridge.resetTables();
-        await bridge.contract.init({evm_contract: `0x9a469d1e668425907548228EA525A661FF3BFa2B`, version: `1`, admin: `orc.bridge`, oracle: 'rng.oracle', serialized_tx: '02156161fDaeae'});
+        await bridge.resetTables();
+        await bridge.contract.init({evm_contract: `9a469d1e668425907548228EA525A661FF3BFa2B`, version: `1`, admin: bridge.accountName, oracle: oracle.accountName, function_signature: `0dF31700`});
     });
     describe(":: Settings", () => {
-        it("can set a new serialized tx", async () => {
-            const txTrace = await bridge.contract.setserialtx({new_serialized_tx: `0dF8170000000000002a189898E`});
+        it("can set a new function signature", async () => {
+            const txTrace = await bridge.contract.setfnsig({new_function_signature: `0dF81700`});
         });
 
         it("can set a new oracle", async () => {
@@ -54,12 +61,12 @@ describe("orc.bridge", () => {
         });
 
         it("can set a new evm contract", async () => {
-            const txTrace = await bridge.contract.setevmctc({new_contract: `0x9a469d1e668425907548228EA525A661FF3BFa2B`});
+            const txTrace = await bridge.contract.setevmctc({new_contract: `9a469d1e668425907548228EA525A661FF3BFa2B`});
         });
     });
     describe(":: Request", () => {
         it("can create a new request", async () => {
-            const txTrace = await bridge.contract.requestrand({call_id: 1, seed: 199, caller: "0x9a469d1e668425907548228EA525A661FF3BFa2B", max: 64, min: 2});
+            const txTrace = await bridge.contract.requestrand({call_id: "01", seed: "01", caller: "9a469d1e668425907548228EA525A661FF3BFa2B", max: "64", min: "02"});
             // get all print output of the transfer action and its created notifications
             const consoleOutput = txTrace.action_traces;
 
@@ -67,10 +74,10 @@ describe("orc.bridge", () => {
             console.log(consoleOutput);
         });
         it("can remove that request", async () => {
-            const txTrace = await bridge.contract.rmvrequest({call_id: 1});
+            const txTrace = await bridge.contract.rmvrequest({request_id: 1});
         });
         it("can reply to that request", async () => {
-            const txTrace = await bridge.contract.receiverand({call_id: 1, number: `01`});
+            const txTrace = await bridge.contract.receiverand({caller_id: 1, random: `01CEB0B8823B9F16B3B99EDAC901C04C72046880169264B20242A0F6DB23DDB6`});
         });
     });
 });

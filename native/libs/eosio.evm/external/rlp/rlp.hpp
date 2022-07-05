@@ -57,7 +57,7 @@ namespace rlp {
 
         inline std::vector<uint8_t> to_byte_string(const std::string& s)
         {
-            return std::vector<uint8_t>(s.begin(), s.end());
+            return to_byte_string(std::vector<uint8_t>(s.begin(), s.end()));
         }
 
         template <size_t N>

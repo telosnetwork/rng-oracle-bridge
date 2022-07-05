@@ -9,7 +9,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     });
 
     console.log("Deployed to:", bridge.address);
-    const tester = await deploy('NativeOracleBridgeTester', {
+    const tester = await deploy('NativeOracleConsumer', {
         from: deployer,
         args: [bridge.address],
     });

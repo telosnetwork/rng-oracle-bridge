@@ -2,11 +2,12 @@
 
 //======================== admin actions ==========================
 // initialize the contract
-ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string serialized_tx){
+ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature, bigint::checksum256 gas_limit){
     // authenticate
     require_auth(get_self());
 
     // validate
+    check(!config.exists(), "contract already initialized");
     check(is_account(admin), "initial admin account doesn't exist");
 
     // initialize
@@ -14,17 +15,31 @@ ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin,
     stored.version = version;
     stored.admin = admin;
     stored.oracle = oracle;
-    stored.serialized_tx = serialized_tx;
+    stored.gas_limit = gas_limit;
+    stored.function_signature = function_signature;
     stored.evm_contract = evm_contract;
     config.set(stored, get_self());
 };
-// set the oracle
+
+// set a new function signature
 ACTION bridge::setfnsig(string new_function_signature){
     // authenticate
     require_auth(config.get().admin);
 
     auto stored = config.get();
     stored.function_signature = new_function_signature;
+
+    // modify
+    config.set(stored, get_self());
+};
+
+// set new gas limit
+ACTION bridge::setgaslimit(bigint::checksum256 new_gas_limit){
+    // authenticate
+    require_auth(config.get().admin);
+
+    auto stored = config.get();
+    stored.gas_limit = new_gas_limit;
 
     // modify
     config.set(stored, get_self());
@@ -117,7 +132,9 @@ ACTION bridge::requestrand(bigint::checksum256 call_id, bigint::checksum256 seed
 
     // open config singleton
     auto conf = config.get();
-    auto seed_64 = intx::as_words(seed);
+
+    uint64_t seed_64 = lo_half(lo_half(seed)); // Seed should be on first 64 bits of stored value (64b stored as 256b in accountstates table)
+    // Possibly use other method to get seed (doesn't matter much ??)
 
     // send to oracle
     action(
@@ -133,37 +150,74 @@ ACTION bridge::receiverand(uint64_t caller_id, checksum256 random)
 {
     // open config singleton
     auto conf = config.get();
+    config_table evm_conf_table(EVM_CONTRACT, EVM_CONTRACT.value);
+    auto evm_conf = evm_conf_table.get();
     // authenticate
-    // require_auth(conf.oracle);
+    require_auth(conf.admin);
 
     // find request
     requests_table requests(get_self(), get_self().value);
     auto &request = requests.get(caller_id, "Request could not be found");
 
-    // Generate EVM serialized transaction
-    string function_signature = conf.function_signature;
-    string gas_limit = conf.gas_limit;
-    string gas_price = conf.gas_price;
-    auto nonce = account.nonce;
-    auto caller = rlp::encode(eosio_evm::checksum160ToAddress(request.caller));
-    string data[1];
-    data[0] = to_string(eosio_evm::checksum256ToValue(random));
-    rlp::encode(data[0]);
-    auto raw = rlp::encode(request.call_id);
-    /* raw_evm_tx.replace(597, ceil(number_str_length / 10), to_string(number_str_length)); // Place number length
-    raw_evm_tx.replace(598, 32, number); // Place number
-    raw_evm_tx.replace(30, caller.length(), caller); // Place caller
-    raw_evm_tx.replace(341, ceil(call_str_length / 10), to_string(call_str_length)); // Place call_id length
-    raw_evm_tx.replace(342, 32, call_str); // Place call_id
+    // find account for nonce
+    account_table _accounts(EVM_CONTRACT, EVM_CONTRACT.value);
+    auto accounts_byaccount = _accounts.get_index<"byaccount"_n>();
+    auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
 
-    action(
+    // Handle min / max
+    auto byte_array = random.extract_as_byte_array();
+    uint256_t random_int = 0;
+    for (int i = 0; i < 32; i++) {
+        random_int <<= 32;
+        random_int |= (uint256_t)byte_array[i];
+    }
+    uint256_t number = request.getMin() + ( random_int % ( request.getMax() - request.getMin() + 1 ) );
+    auto number_str = intx::to_byte_string(number);
+
+    // Prepare data
+    auto fn = toBin(conf.function_signature);
+    uint256_t gas_limit = conf.gas_limit;
+    uint256_t gas_price = evm_conf.gas_price;
+    std::vector<uint8_t> call_id = intx::to_byte_string(request.call_id);
+    auto caller = pad160(request.caller).extract_as_byte_array();
+
+    auto evm_contract = conf.evm_contract.extract_as_byte_array();
+    std::vector<uint8_t> to;
+    to.insert(to.end(),  evm_contract.begin(), evm_contract.end());
+
+    // Prepare solidity function parameters (function signature + arguments)
+    std::vector<uint8_t> data;
+    data.insert(data.end(),  fn.begin(), fn.end());
+    data.insert(data.end(), call_id.begin(), call_id.end());
+    data.insert(data.end(), caller.begin(), caller.end());
+    data.insert(data.end(), number_str.begin(), number_str.end());
+
+    // Instantiate a transaction
+    EthereumTransaction tx (
+        account->nonce,
+        gas_price,
+        gas_limit,
+        to,
+        uint256_t(0), // NO VALUE
+        data
+    );
+
+    // Encode it
+    string rlp_encoded = tx.encodeUnsigned();
+
+    // Print it
+    std::vector<uint8_t> raw;
+    raw.insert(raw.end(), std::begin(rlp_encoded), std::end(rlp_encoded));
+    print(bin2hex(raw));
+
+    // Send it using eosio.evm
+    /* action(
         permission_level{get_self(),"active"_n},
-        "eosio.evm"_n,
+        EVM_CONTRACT,
         "raw"_n,
-        std::make_tuple(get_self(), std::vector<int8_t>(raw_evm_tx.c_str(), raw_evm_tx.c_str() + raw_evm_tx.size()), false, conf.evm_contract)
+        std::make_tuple(get_self(), bin2hex(raw), false, conf.evm_contract)
     ).send();
 
     // DELETE REQUEST
-    requests.erase(request); */
-
+   requests.erase(request); */
 };

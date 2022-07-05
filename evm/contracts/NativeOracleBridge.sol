@@ -5,24 +5,25 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NativeOracleBridge is Ownable {
-    event  Requested(address indexed requestor, address indexed oracle, string callId);
-    event  Replied(address indexed requestor, address indexed oracle, string callId);
+    event  Requested(address indexed requestor, address indexed oracle, uint callId);
+    event  Replied(address indexed requestor, address indexed oracle, uint callId);
 
      struct Request {
+        uint id;
         uint requested_at;
         string[] data;
-        address oracle;
-        string callId;
-        function(string[] memory) external callback;
+        address bridge;
+        function(uint callId, string[] memory) external callback;
      }
      mapping (address => Request[]) public requests;
 
-     struct Oracle {
-        address evm_address;
-        string native_address;
+     struct OracleBridge {
+        address evm_contract;
+        string native_contract;
+        string oracle_native_contract;
      }
 
-     Oracle[] public oracles;
+     OracleBridge[] public bridges;
 
      uint public fee;
      uint public maxRequests;
@@ -44,43 +45,45 @@ contract NativeOracleBridge is Ownable {
      }
 
      // ORACLES REGISTRY ================================================================ >
-     function registerOracle(address _evm_address, string memory _native_address) external onlyOwner returns(bool) {
-        require(!this.oracleExists(_evm_address), "Oracle already registered");
-        oracles.push(Oracle(_evm_address, _native_address));
+     function registerOracleBridge(address _evm_contract, string memory _native_contract, string memory _oracle_native_contract) external onlyOwner returns(bool) {
+        require(!this.oracleBridgeExists(_evm_contract), "Oracle Bridge already registered");
+        bridges.push(OracleBridge(_evm_contract, _native_contract, _oracle_native_contract));
         return true;
      }
 
-     function removeOracle(address _evm_address) external onlyOwner returns (bool) {
-        for(uint i; i < oracles.length; i++){
-            if(oracles[i].evm_address == _evm_address){
-                delete oracles[i];
+     function removeOracleBridge(address _evm_address) external onlyOwner returns (bool) {
+        for(uint i; i < bridges.length; i++){
+            if(bridges[i].evm_contract == _evm_address){
+                delete bridges[i];
                 return true;
             }
         }
-        require(false, "No oracle found");
+        require(false, "No oracle bridge found");
      }
 
      // REQUEST HANDLING ================================================================ >
-     function request(string memory callId, function(string[] memory) external callback, address payable oracle, string[] memory data) external payable {
+     function request(uint callId, function(uint callId, string[] memory) external callback, address payable bridge, string[] memory data) external payable returns (bool) {
         require(msg.value == fee, "Send enough TLOS to pay for the response gas");
         require(requests[msg.sender].length < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
         require(!this.requestExists(msg.sender, callId), "Call ID already exists");
-        require(this.oracleExists(oracle), "Oracle was not found, make sure the address is correct");
+        require(this.oracleBridgeExists(bridge), "Oracle Bridge was not found, make sure the address is correct");
 
-        // TODO: SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
-        oracle.transfer(fee / 2);
+        // SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
+        bridge.transfer(fee / 2);
 
         // BUILD REQUEST
-        requests[msg.sender].push(Request (block.timestamp, data, oracle, callId, callback));
+        requests[msg.sender].push(Request (callId, block.timestamp, data, bridge, callback));
 
-        emit Requested(msg.sender, oracle, callId);
+        emit Requested(msg.sender, bridge, callId);
+
+        return true;
      }
 
-     function deleteRequest(string memory callId) external returns (bool) {
+     function deleteRequest(uint id) external returns (bool) {
         for(uint i; i < requests[msg.sender].length; i++){
-            if(keccak256(bytes(requests[msg.sender][i].callId)) == keccak256(bytes(callId))){
+            if(requests[msg.sender][i].id == id){
                 delete requests[msg.sender][i];
                 return true;
             }
@@ -89,14 +92,14 @@ contract NativeOracleBridge is Ownable {
      }
 
      // REPLY HANDLING ================================================================ >
-     function reply(string memory callId, address requestor, string[] memory args) external {
-        require(this.oracleExists(msg.sender), "Only a registered oracle can call this function");
+     function reply(uint callId, address requestor, string[] memory args) external {
+        require(this.oracleBridgeExists(msg.sender), "Only a registered oracle bridge EVM address can call this function");
         for(uint i; i < requests[requestor].length; i++){
-            if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
-                requests[requestor][i].callback(args);
+            if(requests[requestor][i].id == callId){
+                requests[requestor][i].callback(callId, args);
                 // TODO: MAKE RESULTS PUBLICLY VIEWABLE (this won't be user friendly on explorer ^) ?
                 delete requests[requestor][i];
-                emit Replied(requestor, requests[requestor][i].oracle, callId);
+                emit Replied(requestor, requests[requestor][i].bridge, callId);
                 return;
             }
         }
@@ -104,17 +107,17 @@ contract NativeOracleBridge is Ownable {
      }
 
      // UTIL ================================================================ >
-     function oracleExists(address oracle) external view returns (bool) {
-         for(uint i; i < oracles.length;i++){
-             if(oracles[i].evm_address == oracle){
+     function oracleBridgeExists(address bridge) external view returns (bool) {
+         for(uint i; i < bridges.length;i++){
+             if(bridges[i].evm_contract == bridge){
                  return true;
              }
          }
          return false;
      }
-     function requestExists(address requestor, string memory callId) external view returns (bool) {
+     function requestExists(address requestor, uint id) external view returns (bool) {
         for(uint i; i < requests[requestor].length; i++){
-            if(keccak256(bytes(requests[requestor][i].callId)) == keccak256(bytes(callId))){
+            if(requests[requestor][i].id == id){
                 return true;
             }
         }

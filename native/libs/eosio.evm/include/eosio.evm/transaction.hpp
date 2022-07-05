@@ -188,6 +188,18 @@ namespace eosio_evm
     eosio::name ram_payer;
     // bool ram_as_gas;
 
+    // unsigned constructor
+    EthereumTransaction(const uint256_t _nonce, const uint256_t _gas_price, const uint256_t _gas_limit, const std::vector<uint8_t> _to, uint256_t _value, const std::vector<uint8_t> _data){
+          nonce     = _nonce;
+          gas_price = _gas_price;
+          gas_limit = _gas_limit;
+          to        = _to;
+          value     = _value;
+          data      = _data;
+
+          // Validate Value
+          eosio::check(value >= 0, "Invalid Transaction: Value cannot be negative.");
+    }
     // RLP constructor
     EthereumTransaction(const std::vector<int8_t>& encoded, eosio::name ram_payer_account, const eosio::name& contract_self, eosio::checksum256 telos_trxid)
     {
@@ -251,6 +263,7 @@ namespace eosio_evm
     bool is_create() const { return !to_address.has_value(); }
     uint256_t gas_left() const { return gas_limit - gas_used; }
     std::string encode() const { return rlp::encode(nonce, gas_price, gas_limit, to, value, data, v, r, s); }
+    std::string encodeUnsigned() const { return rlp::encode(nonce, gas_price, gas_limit, to, value, data); }
 
     void initialize_base_gas () {
       gas_used = GP_TRANSACTION;
