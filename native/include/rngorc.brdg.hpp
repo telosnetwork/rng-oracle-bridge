@@ -6,18 +6,18 @@
 #include <eosio/singleton.hpp>
 #include <eosio.evm/eosio.evm.hpp>
 
-#define EVM_CONTRACT name("eosio.evm")
+#define EVM_SYSTEM_CONTRACT name("eosio.evm")
 
 using namespace std;
 using namespace eosio;
 using namespace eosio_evm;
 
 
-class [[eosio::contract("orc.bridge")]] bridge : public contract {
+class [[eosio::contract("rngorc.brdg")]] OracleBridge : public contract {
 
 public:
-    bridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds), config(self, self.value) {};
-    ~bridge() {};
+    OracleBridge(name self, name code, datastream<const char*> ds) : contract(self, code, ds), config(self, self.value) {};
+    ~OracleBridge() {};
 
     //======================== Admin actions ========================
 

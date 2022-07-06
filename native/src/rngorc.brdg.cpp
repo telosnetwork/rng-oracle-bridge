@@ -1,8 +1,8 @@
-#include "../include/orc.bridge.hpp";
+#include "../include/rngorc.brdg.hpp";
 
 //======================== admin actions ==========================
 // initialize the contract
-ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature, bigint::checksum256 gas_limit){
+ACTION OracleBridge::init(eosio::checksum160 evm_contract, string version, name admin, name oracle, string function_signature, bigint::checksum256 gas_limit){
     // authenticate
     require_auth(get_self());
 
@@ -22,7 +22,7 @@ ACTION bridge::init(eosio::checksum160 evm_contract, string version, name admin,
 };
 
 // set a new function signature
-ACTION bridge::setfnsig(string new_function_signature){
+ACTION OracleBridge::setfnsig(string new_function_signature){
     // authenticate
     require_auth(config.get().admin);
 
@@ -34,7 +34,7 @@ ACTION bridge::setfnsig(string new_function_signature){
 };
 
 // set new gas limit
-ACTION bridge::setgaslimit(bigint::checksum256 new_gas_limit){
+ACTION OracleBridge::setgaslimit(bigint::checksum256 new_gas_limit){
     // authenticate
     require_auth(config.get().admin);
 
@@ -46,7 +46,7 @@ ACTION bridge::setgaslimit(bigint::checksum256 new_gas_limit){
 };
 
 // set the oracle
-ACTION bridge::setoracle(name new_oracle){
+ACTION OracleBridge::setoracle(name new_oracle){
     // authenticate
     require_auth(config.get().admin);
 
@@ -58,7 +58,7 @@ ACTION bridge::setoracle(name new_oracle){
 };
 
 // set the contract version
-ACTION bridge::setversion(string new_version){
+ACTION OracleBridge::setversion(string new_version){
     // authenticate
     require_auth(config.get().admin);
 
@@ -70,7 +70,7 @@ ACTION bridge::setversion(string new_version){
 };
 
 // set the bridge evm address
-ACTION bridge::setevmctc(eosio::checksum160 new_contract){
+ACTION OracleBridge::setevmctc(eosio::checksum160 new_contract){
     // authenticate
     require_auth(config.get().admin);
     auto stored = config.get();
@@ -80,7 +80,7 @@ ACTION bridge::setevmctc(eosio::checksum160 new_contract){
 };
 
 // set new contract admin
-ACTION bridge::setadmin(name new_admin){
+ACTION OracleBridge::setadmin(name new_admin){
     // authenticate
     require_auth(config.get().admin);
 
@@ -96,7 +96,7 @@ ACTION bridge::setadmin(name new_admin){
 //======================== Request actions ========================
 
 // remove a request
-ACTION bridge::rmvrequest(uint64_t request_id)
+ACTION OracleBridge::rmvrequest(uint64_t request_id)
 {
     // open config singleton
     auto conf = config.get();
@@ -116,7 +116,7 @@ ACTION bridge::rmvrequest(uint64_t request_id)
 //======================== RNG Oracle actions ========================
 
 // request
-ACTION bridge::requestrand(bigint::checksum256 call_id, bigint::checksum256 seed, eosio::checksum160 caller, bigint::checksum256 max, bigint::checksum256 min)
+ACTION OracleBridge::requestrand(bigint::checksum256 call_id, bigint::checksum256 seed, eosio::checksum160 caller, bigint::checksum256 max, bigint::checksum256 min)
 {
     requests_table requests(get_self(), get_self().value);
 
@@ -146,25 +146,25 @@ ACTION bridge::requestrand(bigint::checksum256 call_id, bigint::checksum256 seed
 };
 
 // receive callback
-ACTION bridge::receiverand(uint64_t caller_id, checksum256 random)
+ACTION OracleBridge::receiverand(uint64_t assoc_id, checksum256 random)
 {
     // open config singleton
     auto conf = config.get();
-    config_table evm_conf_table(EVM_CONTRACT, EVM_CONTRACT.value);
+    config_table evm_conf_table(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
     auto evm_conf = evm_conf_table.get();
     // authenticate
-    require_auth(conf.admin);
+    //require_auth(conf.admin);
 
     // find request
     requests_table requests(get_self(), get_self().value);
-    auto &request = requests.get(caller_id, "Request could not be found");
+    auto &request = requests.get(assoc_id, "Request could not be found");
 
-    // find account for nonce
-    account_table _accounts(EVM_CONTRACT, EVM_CONTRACT.value);
+    // find account
+    account_table _accounts(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
     auto accounts_byaccount = _accounts.get_index<"byaccount"_n>();
     auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
 
-    // Handle min / max
+    // Get number from min/max
     auto byte_array = random.extract_as_byte_array();
     uint256_t random_int = 0;
     for (int i = 0; i < 32; i++) {
@@ -173,21 +173,22 @@ ACTION bridge::receiverand(uint64_t caller_id, checksum256 random)
     }
     uint256_t number = request.getMin() + ( random_int % ( request.getMax() - request.getMin() + 1 ) );
     auto number_str = intx::to_byte_string(number);
+    number_str.insert(number_str.begin(),(32 - number_str.size()), 0);
 
-    // Prepare data
-    auto fn = toBin(conf.function_signature);
-    uint256_t gas_limit = conf.gas_limit;
-    uint256_t gas_price = evm_conf.gas_price;
-    std::vector<uint8_t> call_id = intx::to_byte_string(request.call_id);
-    auto caller = pad160(request.caller).extract_as_byte_array();
-
+    // Prepare address
     auto evm_contract = conf.evm_contract.extract_as_byte_array();
     std::vector<uint8_t> to;
     to.insert(to.end(),  evm_contract.begin(), evm_contract.end());
 
     // Prepare solidity function parameters (function signature + arguments)
+    // TODO: make that a function std::vector<uint8_t> prepareData(Args ...args) in utils (?)
+    std::vector<uint8_t> call_id = intx::to_byte_string(request.call_id);
+    call_id.insert(call_id.begin(),(16 - call_id.size()), 0);
+    auto caller = pad160(request.caller).extract_as_byte_array();
+    auto fnsig = toBin(conf.function_signature);
+
     std::vector<uint8_t> data;
-    data.insert(data.end(),  fn.begin(), fn.end());
+    data.insert(data.end(), fnsig.begin(), fnsig.end());
     data.insert(data.end(), call_id.begin(), call_id.end());
     data.insert(data.end(), caller.begin(), caller.end());
     data.insert(data.end(), number_str.begin(), number_str.end());
@@ -195,29 +196,21 @@ ACTION bridge::receiverand(uint64_t caller_id, checksum256 random)
     // Instantiate a transaction
     EthereumTransaction tx (
         account->nonce,
-        gas_price,
-        gas_limit,
+        evm_conf.gas_price,
+        conf.gas_limit,
         to,
-        uint256_t(0), // NO VALUE
+        uint256_t(0), // NO VALUE NEEDED
         data
     );
 
-    // Encode it
-    string rlp_encoded = tx.encodeUnsigned();
-
-    // Print it
-    std::vector<uint8_t> raw;
-    raw.insert(raw.end(), std::begin(rlp_encoded), std::end(rlp_encoded));
-    print(bin2hex(raw));
-
     // Send it using eosio.evm
-    /* action(
+    action(
         permission_level{get_self(),"active"_n},
-        EVM_CONTRACT,
+        EVM_SYSTEM_CONTRACT,
         "raw"_n,
-        std::make_tuple(get_self(), bin2hex(raw), false, conf.evm_contract)
+        std::make_tuple(get_self(), tx.encode_as_vector(), false, account->address)
     ).send();
 
     // DELETE REQUEST
-   requests.erase(request); */
+   requests.erase(request);
 };

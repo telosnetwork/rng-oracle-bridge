@@ -2,9 +2,9 @@ const { loadConfig, Blockchain } = require("@klevoya/hydra");
 
 const config = loadConfig("hydra.yml");
 
-describe("orc.bridge", () => {
+describe("rngorc.brdg", () => {
     let blockchain = new Blockchain(config);
-    let bridge = blockchain.createAccount(`orc.bridge`);
+    let bridge = blockchain.createAccount(`rngorc.brdg`);
     let oracle = blockchain.createAccount(`rng.oracle`);
     let oracle1 = blockchain.createAccount(`rngoracle1`);
     let oracle2 = blockchain.createAccount(`rngoracle2`);
@@ -53,7 +53,7 @@ describe("orc.bridge", () => {
         });
 
         it("can set a new admin", async () => {
-            const txTrace = await bridge.contract.setadmin({new_admin: `orc.bridge`});
+            const txTrace = await bridge.contract.setadmin({new_admin: `rngorc.brdg`});
         });
 
         it("can set a new version", async () => {

@@ -263,7 +263,12 @@ namespace eosio_evm
     bool is_create() const { return !to_address.has_value(); }
     uint256_t gas_left() const { return gas_limit - gas_used; }
     std::string encode() const { return rlp::encode(nonce, gas_price, gas_limit, to, value, data, v, r, s); }
-    std::string encodeUnsigned() const { return rlp::encode(nonce, gas_price, gas_limit, to, value, data); }
+    std::vector<uint8_t> encode_as_vector() const {
+        std::string rlp_encoded = rlp::encode(nonce, gas_price, gas_limit, to, value, data, v, r, s);
+        std::vector<uint8_t> raw;
+        raw.insert(raw.end(), std::begin(rlp_encoded), std::end(rlp_encoded));
+        return raw;
+    }
 
     void initialize_base_gas () {
       gas_used = GP_TRANSACTION;

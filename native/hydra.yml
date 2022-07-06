@@ -1,8 +1,8 @@
 contracts:
-  orc.bridge:
-    abi: build/orc.bridge.abi
-    name: orc.bridge
-    wasm:  build/orc.bridge.wasm
+  rngorc.brdg:
+    abi: build/rngorc.brdg.abi
+    name: rngorc.brdg
+    wasm:  build/rngorc.brdg.wasm
   rng.oracle:
     name: rng.oracle
     abi:  tests/libs/rng.oracle.abi

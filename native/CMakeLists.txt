@@ -57,18 +57,18 @@ ExternalProject_Add(
    BUILD_ALWAYS 1
 )
 
-add_contract(orc.bridge orc.bridge ${CMAKE_CURRENT_SOURCE_DIR}/src/orc.bridge.cpp)
+add_contract(rngorc.brdg rngorc.brdg ${CMAKE_CURRENT_SOURCE_DIR}/src/rngorc.brdg.cpp)
 
-target_compile_options(orc.bridge.wasm PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/resources)
-target_compile_options(orc.bridge.wasm PUBLIC -Wunknown-pragmas)
-target_include_directories(orc.bridge.wasm
+target_compile_options(rngorc.brdg.wasm PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/resources)
+target_compile_options(rngorc.brdg.wasm PUBLIC -Wunknown-pragmas)
+target_include_directories(rngorc.brdg.wasm
    PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.token/include
    ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.evm/include
    ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.evm/external
    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set_target_properties(orc.bridge.wasm
+set_target_properties(rngorc.brdg.wasm
    PROPERTIES
    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
