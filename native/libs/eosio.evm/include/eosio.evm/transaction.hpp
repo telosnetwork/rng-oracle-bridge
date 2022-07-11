@@ -197,6 +197,9 @@ namespace eosio_evm
           value     = _value;
           data      = _data;
 
+          // Validate To Address
+          eosio::check(to.size() < 40, "Invalid Transaction: to address must be 40 characters (excluding 0x prefix)");
+
           // Validate Value
           eosio::check(value >= 0, "Invalid Transaction: Value cannot be negative.");
     }
@@ -264,9 +267,8 @@ namespace eosio_evm
     uint256_t gas_left() const { return gas_limit - gas_used; }
     std::string encode() const { return rlp::encode(nonce, gas_price, gas_limit, to, value, data, v, r, s); }
     std::vector<uint8_t> encode_as_vector() const {
-        std::string rlp_encoded = rlp::encode(nonce, gas_price, gas_limit, to, value, data, v, r, s);
-        std::vector<uint8_t> raw;
-        raw.insert(raw.end(), std::begin(rlp_encoded), std::end(rlp_encoded));
+        std::string rlp_encoded = encode();
+        std::vector<uint8_t> raw(rlp_encoded.begin(), rlp_encoded.end());
         return raw;
     }
 

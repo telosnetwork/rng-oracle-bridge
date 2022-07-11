@@ -57,15 +57,16 @@ ExternalProject_Add(
    BUILD_ALWAYS 1
 )
 
-add_contract(rngorc.brdg rngorc.brdg ${CMAKE_CURRENT_SOURCE_DIR}/src/rngorc.brdg.cpp)
+add_contract(rngorc.brdg rngorc.brdg
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/rngorc.brdg.cpp
+)
 
 target_compile_options(rngorc.brdg.wasm PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/resources)
 target_compile_options(rngorc.brdg.wasm PUBLIC -Wunknown-pragmas)
+target_compile_definitions(rngorc.brdg.wasm PRIVATE -D_LIBCPP_STRSTREAM -DBOOST_EXCEPTION_DISABLE=1 -D_GLIBCXX_SSTREAM=1 -D_LIBCPP_SSTREAM -DBOOST_NO_IOSTREAM -DBOOST_NO_STRINGSTREAM )
 target_include_directories(rngorc.brdg.wasm
    PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.token/include
-   ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.evm/include
-   ${CMAKE_CURRENT_SOURCE_DIR}/libs/eosio.evm/external
+   ${CMAKE_CURRENT_SOURCE_DIR}/external
    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set_target_properties(rngorc.brdg.wasm
