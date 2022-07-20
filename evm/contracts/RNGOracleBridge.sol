@@ -13,14 +13,16 @@ contract RNGOracleBridge is Ownable {
     event  Replied(address indexed requestor, uint callId, uint random);
 
      struct Request {
+        uint id;
+        address caller_address;
         uint caller_id;
         uint requested_at;
-        uint seed;
+        uint64 seed;
         uint min;
         uint max;
      }
-     mapping (address => Request[]) public requests;
-
+     mapping (address => uint) public request_count;
+     Request[] public requests; // Not using a mapping to be able to read from accountstate in native (else we need to know the mapping key we want to lookup)
      uint public fee;
      uint public maxRequests;
      address public oracle_evm_contract;
@@ -48,9 +50,9 @@ contract RNGOracleBridge is Ownable {
      }
 
      // REQUEST HANDLING ================================================================ >
-     function request(uint callId, uint seed, uint min, uint max) external payable returns (bool) {
+     function request(uint callId, uint64 seed, uint min, uint max) external payable returns (bool) {
         require(msg.value == fee, "Send enough TLOS to pay for the response gas");
-        require(requests[msg.sender].length < maxRequests, "Maximum requests reached, wait for replies or delete one");
+        require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
         require(!this.requestExists(msg.sender, callId), "Call ID already exists");
@@ -58,8 +60,14 @@ contract RNGOracleBridge is Ownable {
         // SEND HALF OF FEE TO ORACLE EVM ADDRESS SO IT CAN SEND THE RESPONSE BACK, KEEP THE REST TO SEND THAT RESPONSE BACK TO CALLBACK
         payable(oracle_evm_contract).transfer(fee / 2);
 
+        request_count[msg.sender]++;
+
         // BUILD REQUEST
-        requests[msg.sender].push(Request (callId, block.timestamp, seed, min, max));
+        uint id = 0;
+        if(requests.length > 0){
+            id = requests[requests.length - 1].id + 1;
+        }
+        requests.push(Request (id, msg.sender , callId, block.timestamp, seed, min, max));
 
         emit Requested(msg.sender, callId);
 
@@ -67,34 +75,41 @@ contract RNGOracleBridge is Ownable {
      }
 
      function deleteRequest(uint id) external returns (bool) {
-        for(uint i; i < requests[msg.sender].length; i++){
-            if(requests[msg.sender][i].caller_id == id){
-                delete requests[msg.sender][i];
+        for(uint i = 0; i < requests.length; i++){
+            if(requests[i].id == id){
+                require(msg.sender == requests[i].caller_address || msg.sender == owner(), "Only the requestor or owner can delete a request");
+                address caller = requests[i].caller_address;
+                requests[i] = requests[requests.length - 1];
+                requests.pop();
+                request_count[caller]--;
                 return true;
             }
         }
-        return false;
+        revert("Request not found");
      }
 
      // REPLY HANDLING ================================================================ >
-     function reply(uint callId, address requestor, uint random) external {
-        require(msg.sender == oracle_evm_contract, "Only the oracle bridge EVM address can call this function");
-        bool found = false;
-        for(uint i; i < requests[requestor].length; i++){
-            if(requests[requestor][i].caller_id == callId){
-                IRNGOracleConsumer(requestor).receiveRandom(requests[requestor][i].caller_id, random);
-                delete requests[requestor][i];
-                emit Replied(requestor, callId, random);
-                found = true;
+     function reply(uint callId, uint random) external {
+        require(msg.sender == oracle_evm_contract, "Only the native oracle bridge EVM address can call this function");
+        for(uint i = 0; i < requests.length; i++){
+            if(requests[i].id == callId){
+                uint caller_id = requests[i].caller_id;
+                address caller = requests[i].caller_address;
+                IRNGOracleConsumer(caller).receiveRandom(caller_id, random);
+                requests[i] = requests[requests.length - 1];
+                requests.pop();
+                request_count[caller]--;
+                emit Replied(caller, caller_id, random);
+                return;
             }
         }
-        require(found, "Request not found");
+        revert("Request not found");
      }
 
      // UTIL ================================================================ >
      function requestExists(address requestor, uint id) external view returns (bool) {
-        for(uint i; i < requests[requestor].length; i++){
-            if(requests[requestor][i].caller_id == id){
+        for(uint i = 0; i < requests.length; i++){
+            if(requests[i].caller_id == id && requests[i].caller_address == requestor ){
                 return true;
             }
         }

@@ -23,10 +23,17 @@ class OracleBridge {
         this.api = api;
         this.rpcEVM = rpcEVM;
         this.storageLengthKey = storageLengthKey;
+        this.counter = 0;
     }
     async start() {
-        await this.startStream();
-        //await this.doTableCheck();
+        try {
+            // Get the scope for our EVM contrat in Mandel eosio.evm contract
+            await this.startStream();
+        } catch (e) {
+
+        }
+
+        // await this.doTableCheck();
         // TODO: maybe a 15 second setInterval against doTableCheck?  In case stream takes a crap?
         // Or: find a way to check stream health at set interval (better), if failed then doTableCheck & launch stream back
         // Or: disconnect and connect back every X minutes
@@ -68,9 +75,27 @@ class OracleBridge {
         this.streamClient.onData = async (data, ack) => {
             if (data.content.present){
                 let row = data.content.data;
-                let length =  parseInt(ethers.utils.formatEther(await this.rpcEVM.getStorageAt(this.bridgeEVMAddress, this.storageLengthKey)));
-                // check if new requests (not delete)
-                // if new request send notification to bridge contract to read accountstate (pass a param ?? how to keep track of what was sent or not ??)
+                if(this.counter == 0){
+                    this.api.transact({
+                        actions: [{
+                            account: this.bridgeNativeContract,
+                            name: 'reqnotify',
+                            authorization: [{ actor: this.bridgeNativeContract, permission: 'active' }],
+                            data: {},
+                        }]
+                    }, {
+                        blocksBehind: 3,
+                        expireSeconds: 30,
+                    }).then(result => {
+                        console.log('\nCalled reqnotify()');
+                    }).catch(e => {
+                        console.log('\nCaught exception: ' + e);
+                    });
+                }
+                this.counter++;
+                if(this.counter == 11){
+                    this.counter = 0;
+                }
             }
             ack();
         };

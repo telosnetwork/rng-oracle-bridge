@@ -45,31 +45,18 @@ else()
    set(TEST_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 endif()
 
-ExternalProject_Add(
-   contracts
-   SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs
-   BINARY_DIR ${CMAKE_BINARY_DIR}/libs
-   CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${EOSIO_CDT_ROOT}/lib/cmake/eosio.cdt/EosioWasmToolchain.cmake
-   UPDATE_COMMAND ""
-   PATCH_COMMAND ""
-   TEST_COMMAND ""
-   INSTALL_COMMAND ""
-   BUILD_ALWAYS 1
+add_contract(rng.bridge rng.bridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/rng.bridge.cpp
 )
 
-add_contract(rngorc.brdg rngorc.brdg
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/rngorc.brdg.cpp
-)
-
-target_compile_options(rngorc.brdg.wasm PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/resources)
-target_compile_options(rngorc.brdg.wasm PUBLIC -Wunknown-pragmas)
-target_compile_definitions(rngorc.brdg.wasm PRIVATE -D_LIBCPP_STRSTREAM -DBOOST_EXCEPTION_DISABLE=1 -D_GLIBCXX_SSTREAM=1 -D_LIBCPP_SSTREAM -DBOOST_NO_IOSTREAM -DBOOST_NO_STRINGSTREAM )
-target_include_directories(rngorc.brdg.wasm
+target_compile_options(rng.bridge.wasm PUBLIC -Wunknown-pragmas)
+target_compile_definitions(rng.bridge.wasm PRIVATE -D_LIBCPP_STRSTREAM -DBOOST_EXCEPTION_DISABLE=1 -D_GLIBCXX_SSTREAM=1 -D_LIBCPP_SSTREAM -DBOOST_NO_IOSTREAM -DBOOST_NO_STRINGSTREAM )
+target_include_directories(rng.bridge.wasm
    PUBLIC
    ${CMAKE_CURRENT_SOURCE_DIR}/external
    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-set_target_properties(rngorc.brdg.wasm
+set_target_properties(rng.bridge.wasm
    PROPERTIES
    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 

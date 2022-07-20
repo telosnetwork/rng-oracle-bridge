@@ -6,7 +6,6 @@
 
 namespace orc_bridge
 {
-  static constexpr auto WORD_SIZE       = 32u;
 
   /**
    * Conversions
@@ -81,7 +80,6 @@ namespace orc_bridge
       }
       return output;
   }
-
   inline const std::array<uint8_t, 32u> fromChecksum160(const eosio::checksum160 input)
   {
     std::array<uint8_t, 32U> output = {};
@@ -96,7 +94,6 @@ namespace orc_bridge
     std::copy(std::begin(input) + 12, std::end(input), std::begin(output));
     return eosio::checksum160(output);
   }
-
 
   inline eosio::checksum160 toChecksum160(const std::string& input)
   {
@@ -128,6 +125,10 @@ namespace orc_bridge
     std::copy(std::begin(input_bytes), std::end(input_bytes), std::begin(output));
 
     return intx::be::unsafe::load<uint256_t>(output.data());
+  }
+
+  inline const eosio::checksum256 getArrayMemberSlot(uint256_t array_slot, uint256_t position, uint256_t property_count, uint256_t array_length){
+        return toChecksum256(array_slot + position + (property_count * (array_length - uint256_t(1))));
   }
 
   /**

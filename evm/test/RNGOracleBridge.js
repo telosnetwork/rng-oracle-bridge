@@ -49,6 +49,10 @@ describe("RNGOracleBridge Contract", function () {
         it("Should revert if fee is incorrect" , async function () {
             await expect(consumer.makeRequest("120000", 10, 120, {"value": HALF_TLOS})).to.be.reverted;
         });
+        it("Should be able to delete a request" , async function () {
+            await expect( consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+            await expect(bridge.deleteRequest(0)).to.not.be.reverted;
+        });
         it("Should not be possible to have more than " + MAX_REQUESTS + " requests" , async function () {
             for(var i = 0; i < MAX_REQUESTS; i++){
                 await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
@@ -59,11 +63,11 @@ describe("RNGOracleBridge Contract", function () {
     describe(":: Response", function () {
         it("Shouldn't be able to reply from another address than the Request oracle" , async function () {
             await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
-            await expect(bridge.connect(user).reply(0, consumer.address, ["116"])).to.be.reverted;
+            await expect(bridge.connect(user).reply(0, 116)).to.be.reverted;
         });
         it("Should be able to reply to a Request" , async function () {
             await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
-            await expect(bridge.connect(oracle).reply(0, consumer.address, "116")).to.not.be.reverted;
+            await expect(bridge.connect(oracle).reply(0, 116)).to.not.be.reverted;
         });
     });
 });
