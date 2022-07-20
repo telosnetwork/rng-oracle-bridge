@@ -58,9 +58,8 @@ Edit the following values in the `env` file:
 
 Run the following command:
 
-mkdir build & cd build
-cmake..
-make -j4
+`mkdir build & cd build`
+`cmake.. & make -j4`
 
 ### TEST
 
