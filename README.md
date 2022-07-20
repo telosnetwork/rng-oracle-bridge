@@ -1,4 +1,4 @@
-⚠️ **This README is still WIP **
+⚠ **This README is still WIP**
 
 # RNG Native Oracle <> EVM Bridge
 
