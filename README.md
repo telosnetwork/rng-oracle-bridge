@@ -1,3 +1,5 @@
+⚠️ **This README is still WIP **
+
 # RNG Native Oracle <> EVM Bridge
 
 This repository includes two folders, the [EVM side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) of the rng oracle bridge and its [Native side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/native).
@@ -76,6 +78,12 @@ You can deploy the contract using cleos with the following command:
 `cleos --url http://testnet.telos.net set contract [CONTRACT ACCOUNT] ./build ./rng.bridge.cpp ./rng.bridge.hpp`
 
 ## 3. START THE NATIVE LISTENER
+
+### CONFIGURE
+
+Edit the following values in the `env` file:
+
+### RUN
 
 From the `state-listener` directory, use `pm2` to start the listener script:
 
