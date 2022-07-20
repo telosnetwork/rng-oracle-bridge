@@ -1,5 +1,3 @@
-/!\ This README is still WIP
-
 # RNG Native Oracle <> EVM Bridge
 
 This repository includes two folders, the [EVM side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) of the rng oracle bridge and its [Native side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/native).
