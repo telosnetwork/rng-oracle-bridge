@@ -14,7 +14,7 @@ This repository requires NodeJS 14+ and pm2 installed
 
 Clone the repo with:
 
-`git clone https://github.com/telosnetwork/native-oracle-bridge`
+`git clone https://github.com/telosnetwork/rng-oracle-bridge`
 
 ## 1. DEPLOY THE EVM CONTRACT
 
@@ -60,6 +60,10 @@ Edit the following values in the `env` file:
 
 Run the following command:
 
+mkdir build & cd build
+cmake..
+make -j4
+
 ### TEST
 
 Run the following command to start testing with the Hydra testing suite:
@@ -70,13 +74,17 @@ You can find the tests in the `tests` directory.
 
 ### DEPLOY
 
+You can deploy the contract using cleos with the following command:
+
+`cleos --url http://testnet.telos.net set contract [CONTRACT ACCOUNT] ./build ./rng.bridge.cpp ./rng.bridge.hpp`
+
 ## 3. START THE NATIVE LISTENER
 
-From the `native` directory, use `pm2` to start the listener script:
+From the `state-listener` directory, use `pm2` to start the listener script:
 
-`pm2 scripts/AccountStateListener.js`
+`pm2 index.js`
 
 ## 4. MAKE A REQUEST !
 
-Deploy a contract that calls the newly deployed `NativeOracleBridge` EVM contract's `request()` function and implements a callback function in order to receive the oracle's answer (confer to the specific oracle documentation for arguments returned). Refer to the `NativeOracleBridgeTester` EVM contract for an example.
+Deploy a contract that calls the newly deployed `RNGOracleBridge` EVM contract's `function request(uint callId, uint64 seed, uint min, uint max)` function and implements a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. Refer to the `RNGOracleConsumer` EVM contract for an example.
 
