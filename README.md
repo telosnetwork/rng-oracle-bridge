@@ -60,8 +60,9 @@ Edit the following values in the `env` file:
 
 Run the following command:
 
-`mkdir build & cd build`
-`cmake.. & make -j4`
+`bash build.sh`
+
+Files will be saved to the `build` directory
 
 ### TEST
 

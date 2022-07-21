@@ -5,7 +5,7 @@ const JsSignatureProvider = require('eosjs/dist/eosjs-jssig').JsSignatureProvide
 const JsonRpc = eosjs.JsonRpc
 const Api = eosjs.Api
 const fetch = require('node-fetch')
-const util = require('util')
+const util = require('util');
 const { BigNumber, ethers, utils } = require("ethers");
 
 const signatureProvider = new JsSignatureProvider([process.env.BRIDGE_KEY]);
