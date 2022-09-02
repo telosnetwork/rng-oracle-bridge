@@ -33,8 +33,8 @@ contract RNGOracleBridge is Ownable {
      address public oracle_evm_contract;
      IGasOracleBridge public gasOracle;
 
-      constructor(uint _fee, uint _maxRequests, address _oracle_evm_contract, address _gas_oracle) {
-        gasOracle = IGasOracleBridge(_gas_oracle);
+      constructor(uint _fee, uint _maxRequests, address _oracle_evm_contract, IGasOracleBridge _gas_oracle) {
+        gasOracle = _gas_oracle;
         fee = _fee;
         maxRequests = _maxRequests;
         oracle_evm_contract = _oracle_evm_contract;

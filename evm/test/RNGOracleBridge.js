@@ -75,8 +75,8 @@ describe("RNGOracleBridge Contract", function () {
             await expect(bridge.connect(user).reply(0, 116)).to.be.reverted;
         });
         it("Should be able to reply to a Request" , async function () {
-            let cost = await bridge.getCost(20000);
-            await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
+            let cost = await bridge.getCost(150000);
+            await expect(consumer.makeRequest("120000", 10, 120, 150000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(oracle).reply(0, 116)).to.not.be.reverted;
         });
     });
