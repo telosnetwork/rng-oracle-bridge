@@ -1,1 +1,1 @@
-# Native Oracle <> EVM Bridge :: Native Side
+# RNG Oracle Bridge :: Antelope

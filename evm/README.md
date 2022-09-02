@@ -1,1 +1,1 @@
-# Native Oracle <> EVM Bridge :: EVM Side
+# RNG Oracle Bridge :: EVM
