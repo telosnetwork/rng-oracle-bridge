@@ -1,0 +1,269 @@
+{
+  "version": "eosio::abi/1.1",
+  "types": [],
+  "structs": [
+    {
+      "name": "clearreq",
+      "base": "",
+      "fields": [
+        {
+          "name": "request_id",
+          "type": "uint64"
+        },
+        {
+          "name": "memo",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "config",
+      "base": "",
+      "fields": [
+        {
+          "name": "app_name",
+          "type": "string"
+        },
+        {
+          "name": "app_version",
+          "type": "string"
+        },
+        {
+          "name": "admin",
+          "type": "name"
+        },
+        {
+          "name": "counter",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "init",
+      "base": "",
+      "fields": [
+        {
+          "name": "app_name",
+          "type": "string"
+        },
+        {
+          "name": "app_version",
+          "type": "string"
+        },
+        {
+          "name": "initial_admin",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "oracle",
+      "base": "",
+      "fields": [
+        {
+          "name": "oracle_name",
+          "type": "name"
+        },
+        {
+          "name": "sigcount",
+          "type": "uint64"
+        },
+        {
+          "name": "pub_key",
+          "type": "public_key"
+        }
+      ]
+    },
+    {
+      "name": "requestrand",
+      "base": "",
+      "fields": [
+        {
+          "name": "caller_id",
+          "type": "uint64"
+        },
+        {
+          "name": "seed",
+          "type": "uint64"
+        },
+        {
+          "name": "caller",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "rmvoracle",
+      "base": "",
+      "fields": [
+        {
+          "name": "oracle_name",
+          "type": "name"
+        },
+        {
+          "name": "memo",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "rngrequest",
+      "base": "",
+      "fields": [
+        {
+          "name": "request_id",
+          "type": "uint64"
+        },
+        {
+          "name": "caller_id",
+          "type": "uint64"
+        },
+        {
+          "name": "digest",
+          "type": "checksum256"
+        },
+        {
+          "name": "oracle1",
+          "type": "name"
+        },
+        {
+          "name": "sig1",
+          "type": "signature"
+        },
+        {
+          "name": "oracle2",
+          "type": "name"
+        },
+        {
+          "name": "sig2",
+          "type": "signature"
+        },
+        {
+          "name": "request_time",
+          "type": "time_point_sec"
+        },
+        {
+          "name": "caller",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "setadmin",
+      "base": "",
+      "fields": [
+        {
+          "name": "new_admin",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "setversion",
+      "base": "",
+      "fields": [
+        {
+          "name": "new_version",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "submitrand",
+      "base": "",
+      "fields": [
+        {
+          "name": "request_id",
+          "type": "uint64"
+        },
+        {
+          "name": "oracle_name",
+          "type": "name"
+        },
+        {
+          "name": "sig",
+          "type": "signature"
+        }
+      ]
+    },
+    {
+      "name": "upsertoracle",
+      "base": "",
+      "fields": [
+        {
+          "name": "oracle_name",
+          "type": "name"
+        },
+        {
+          "name": "pub_key",
+          "type": "public_key"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "clearreq",
+      "type": "clearreq",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "init",
+      "type": "init",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "requestrand",
+      "type": "requestrand",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "rmvoracle",
+      "type": "rmvoracle",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setadmin",
+      "type": "setadmin",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setversion",
+      "type": "setversion",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "submitrand",
+      "type": "submitrand",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "upsertoracle",
+      "type": "upsertoracle",
+      "ricardian_contract": ""
+    }
+  ],
+  "tables": [
+    {
+      "name": "config",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": [],
+      "type": "config"
+    },
+    {
+      "name": "oracles",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": [],
+      "type": "oracle"
+    },
+    {
+      "name": "rngrequests",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": [],
+      "type": "rngrequest"
+    }
+  ]
+}

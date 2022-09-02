@@ -27,7 +27,7 @@ contract RNGOracleConsumer {
             callId = requests[requests.length - 1].id + 1;
         }
         requests.push(Request(callId, seed, min, max));
-        bridge.request{value: msg.value }(callId, seed, min, max);
+        bridge.request{value: msg.value }(callId, seed, min, max, 10000);
     }
 
     function receiveRandom(uint callId, uint random) external {

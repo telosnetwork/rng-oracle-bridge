@@ -8,6 +8,10 @@ interface IRNGOracleConsumer {
     function receiveRandom(uint, uint) external;
 }
 
+interface IGasOracleBridge {
+    getPrice() external view returns(uint);
+}
+
 contract RNGOracleBridge is Ownable {
     event  Requested(address indexed requestor, uint callId);
     event  Replied(address indexed requestor, uint callId, uint random);
@@ -20,14 +24,17 @@ contract RNGOracleBridge is Ownable {
         uint64 seed;
         uint min;
         uint max;
+        uint callback_gas;
      }
      mapping (address => uint) public request_count;
      Request[] public requests; // Not using a mapping to be able to read from accountstate in native (else we need to know the mapping key we want to lookup)
      uint public fee;
      uint public maxRequests;
      address public oracle_evm_contract;
+     IGasOracle public gasOracle;
 
-      constructor(uint _fee, uint _maxRequests, address _oracle_evm_contract) {
+      constructor(uint _fee, uint _maxRequests, address _oracle_evm_contract, address _gas_oracle) {
+        gasOracle = IGasOracleBridge(_gas_oracle);
         fee = _fee;
         maxRequests = _maxRequests;
         oracle_evm_contract = _oracle_evm_contract;
@@ -49,9 +56,16 @@ contract RNGOracleBridge is Ownable {
         return true;
      }
 
+     function getCost(uint callback_gas) external view returns(uint) {
+        (bool success, bytes memory data) = gasOracle.getPrice();
+        require(success, "Could not get gas price from gas oracle");
+        uint gasPrice = abi.decode(data, (uint));
+        return (fee + ((callback_gas * gasPrice  / 10**9)));
+     }
+
      // REQUEST HANDLING ================================================================ >
-     function request(uint callId, uint64 seed, uint min, uint max) external payable returns (bool) {
-        require(msg.value == fee, "Send enough TLOS to pay for the response gas");
+     function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas) external payable returns (bool) {
+        require(msg.value == getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
@@ -67,7 +81,7 @@ contract RNGOracleBridge is Ownable {
         if(requests.length > 0){
             id = requests[requests.length - 1].id + 1;
         }
-        requests.push(Request (id, msg.sender , callId, block.timestamp, seed, min, max));
+        requests.push(Request (id, msg.sender , callId, block.timestamp, seed, min, max, callback_gas));
 
         emit Requested(msg.sender, callId);
 
@@ -95,7 +109,8 @@ contract RNGOracleBridge is Ownable {
             if(requests[i].id == callId){
                 uint caller_id = requests[i].caller_id;
                 address caller = requests[i].caller_address;
-                IRNGOracleConsumer(caller).receiveRandom(caller_id, random);
+                uint gas = requests[i].callback_gas;
+                IRNGOracleConsumer(caller).receiveRandom{gas: gas}(caller_id, random);
                 requests[i] = requests[requests.length - 1];
                 requests.pop();
                 request_count[caller]--;

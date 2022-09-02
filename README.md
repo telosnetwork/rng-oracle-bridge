@@ -1,8 +1,6 @@
-⚠ **This README is still WIP**
+# RNG Oracle Bridge
 
-# RNG Native Oracle <> EVM Bridge
-
-This repository includes two folders, the [EVM side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) of the rng oracle bridge and its [Native side](https://github.com/telosnetwork/native-oracle-bridge/tree/main/native).
+This repository includes three folders that need to be setup for the bridge to work: [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm), [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope), [listeners](https://github.com/telosnetwork/native-oracle-bridge/tree/main/listeners).
 
 Follow the instructions below, in the right order, to deploy it
 
@@ -44,11 +42,11 @@ Verify the contract  with:
 
 `npx hardhat sourcify --network=testnet`
 
-## 2. DEPLOY THE NATIVE CONTRACT
+## 2. DEPLOY THE ANTELOPE CONTRACT
 
 ### INSTALL
 
-Navigate to the `native` directory and run the following command:
+Navigate to the `antelope` directory and run the following command:
 
 `npm install`
 
@@ -78,7 +76,7 @@ You can deploy the contract using cleos with the following command:
 
 `cleos --url http://testnet.telos.net set contract [CONTRACT ACCOUNT] ./build ./rng.bridge.cpp ./rng.bridge.hpp`
 
-## 3. START THE NATIVE LISTENER
+## 3. START THE LISTENER
 
 ### CONFIGURE
 
@@ -86,7 +84,7 @@ Edit the following values in the `env` file:
 
 ### RUN
 
-From the `state-listener` directory, use `pm2` to start the listener script:
+From the `listeners` directory, use `pm2` to start the listener script:
 
 `pm2 index.js`
 
