@@ -90,5 +90,12 @@ From the `listeners` directory, use `pm2` to start the listener script:
 
 ## 4. MAKE A REQUEST !
 
-Deploy a contract that calls the newly deployed `RNGOracleBridge` EVM contract's `function request(uint callId, uint64 seed, uint min, uint max)` function and implements a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. Refer to the `RNGOracleConsumer` EVM contract for an example.
+Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas)` function, passing a value to cover fee and callback gas cost, and implements a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. Refer to the `RNGOracleConsumer` EVM contract for an example.
+
+### What is callback gas ? How do I know what value to pass ?
+
+The `callback_gas` variable contains the gas you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 21000).
+
+You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function 
+
 
