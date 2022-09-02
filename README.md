@@ -96,6 +96,6 @@ Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `re
 
 The `callback_gas` variable contains the gas you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 21000).
 
-You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function 
+You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function or by implementing your own offchain version of that function. 
 
 
