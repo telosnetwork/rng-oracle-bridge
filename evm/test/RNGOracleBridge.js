@@ -48,7 +48,6 @@ describe("RNGOracleBridge Contract", function () {
     describe(":: Request", function () {
         it("Should be created with correct parameters" , async function () {
             let cost = await bridge.getCost(20000);
-            console.log(cost);
             await expect( consumer.makeRequest("120000", 10, 120, 20000, {"value": cost})).to.not.be.reverted;
         });
         it("Should revert if value is incorrect" , async function () {
@@ -74,9 +73,14 @@ describe("RNGOracleBridge Contract", function () {
             await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(user).reply(0, 116)).to.be.reverted;
         });
+        it("Should not be able to reply to a Request without enough gas" , async function () {
+            let cost = await bridge.getCost(1000);
+            await expect(consumer.makeRequest("120000", 10, 120, 1000, {"value": cost })).to.not.be.reverted;
+            await expect(bridge.connect(oracle).reply(0, 116)).to.be.reverted;
+        });
         it("Should be able to reply to a Request" , async function () {
-            let cost = await bridge.getCost(150000);
-            await expect(consumer.makeRequest("120000", 10, 120, 150000, {"value": cost })).to.not.be.reverted;
+            let cost = await bridge.getCost(50000);
+            await expect(consumer.makeRequest("120000", 10, 120, 50000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(oracle).reply(0, 116)).to.not.be.reverted;
         });
     });
