@@ -9,7 +9,7 @@ interface IRNGOracleConsumer {
 }
 
 interface IGasOracleBridge {
-    getPrice() external view returns(uint);
+    function getPrice() external view returns(uint);
 }
 
 contract RNGOracleBridge is Ownable {
@@ -31,7 +31,7 @@ contract RNGOracleBridge is Ownable {
      uint public fee;
      uint public maxRequests;
      address public oracle_evm_contract;
-     IGasOracle public gasOracle;
+     IGasOracleBridge public gasOracle;
 
       constructor(uint _fee, uint _maxRequests, address _oracle_evm_contract, address _gas_oracle) {
         gasOracle = IGasOracleBridge(_gas_oracle);
@@ -56,16 +56,18 @@ contract RNGOracleBridge is Ownable {
         return true;
      }
 
-     function getCost(uint callback_gas) external view returns(uint) {
-        (bool success, bytes memory data) = gasOracle.getPrice();
-        require(success, "Could not get gas price from gas oracle");
-        uint gasPrice = abi.decode(data, (uint));
+     function _getCost(uint callback_gas) internal view returns(uint) {
+        uint gasPrice =  gasOracle.getPrice();
         return (fee + ((callback_gas * gasPrice  / 10**9)));
+     }
+
+     function getCost(uint callback_gas) external view returns(uint) {
+        return _getCost(callback_gas);
      }
 
      // REQUEST HANDLING ================================================================ >
      function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas) external payable returns (bool) {
-        require(msg.value == getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
+        require(msg.value == _getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS

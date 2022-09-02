@@ -3,14 +3,17 @@ const { ethers } = require("hardhat");
 const ONE_TLOS = ethers.utils.parseEther("1.0");
 const HALF_TLOS = ethers.utils.parseEther("0.5");
 const MAX_REQUESTS = 10;
+const GAS_PRICE = 7232321;
 
 describe("RNGOracleBridge Contract", function () {
-    let bridge, owner, oracle, oracle2, user, consumer;
+    let bridge, owner, oracle, oracle2, user, consumer, gasOracle;
     beforeEach(async () => {
         [owner, oracle, oracle2, user] = await ethers.getSigners();
         let Consumer = await ethers.getContractFactory("RNGOracleConsumer");
         let Bridge = await ethers.getContractFactory("RNGOracleBridge");
-        bridge = await Bridge.deploy(ONE_TLOS, MAX_REQUESTS, oracle.address);
+        let GasOracle = await ethers.getContractFactory("GasOracleBridge");
+        gasOracle = await GasOracle.deploy(owner.address, GAS_PRICE)
+        bridge = await Bridge.deploy(ONE_TLOS, MAX_REQUESTS, oracle.address, gasOracle.address);
         consumer = await Consumer.deploy(bridge.address);
     })
     describe(":: Settings", function () {
@@ -44,29 +47,36 @@ describe("RNGOracleBridge Contract", function () {
     });
     describe(":: Request", function () {
         it("Should be created with correct parameters" , async function () {
-            await expect( consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+            let cost = await bridge.getCost(20000);
+            console.log(cost);
+            await expect( consumer.makeRequest("120000", 10, 120, 20000, {"value": cost})).to.not.be.reverted;
         });
-        it("Should revert if fee is incorrect" , async function () {
-            await expect(consumer.makeRequest("120000", 10, 120, {"value": HALF_TLOS})).to.be.reverted;
+        it("Should revert if value is incorrect" , async function () {
+            let cost = await bridge.getCost(20000);
+            await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost.div(2)})).to.be.reverted;
         });
         it("Should be able to delete a request" , async function () {
-            await expect( consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+            let cost = await bridge.getCost(20000);
+            await expect( consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.deleteRequest(0)).to.not.be.reverted;
         });
         it("Should not be possible to have more than " + MAX_REQUESTS + " requests" , async function () {
+            let cost = await bridge.getCost(20000);
             for(var i = 0; i < MAX_REQUESTS; i++){
-                await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+                await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             }
-            await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.be.reverted;
+            await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.be.reverted;
         });
     });
     describe(":: Response", function () {
         it("Shouldn't be able to reply from another address than the Request oracle" , async function () {
-            await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+            let cost = await bridge.getCost(20000);
+            await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(user).reply(0, 116)).to.be.reverted;
         });
         it("Should be able to reply to a Request" , async function () {
-            await expect(consumer.makeRequest("120000", 10, 120, {"value": ONE_TLOS})).to.not.be.reverted;
+            let cost = await bridge.getCost(20000);
+            await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(oracle).reply(0, 116)).to.not.be.reverted;
         });
     });
