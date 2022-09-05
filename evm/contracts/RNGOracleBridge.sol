@@ -29,6 +29,7 @@ contract RNGOracleBridge is Ownable {
      mapping (address => uint) public request_count;
      Request[] public requests; // Not using a mapping to be able to read from accountstate in native (else we need to know the mapping key we want to lookup)
      uint public fee;
+     uint count;
      uint public maxRequests;
      address public oracle_evm_contract;
      IGasOracleBridge public gasOracle;
@@ -58,7 +59,7 @@ contract RNGOracleBridge is Ownable {
 
      function _getCost(uint callback_gas) internal view returns(uint) {
         uint gasPrice =  gasOracle.getPrice();
-        return (fee + ((callback_gas * gasPrice  / 10**9)));
+        return (fee + (callback_gas * gasPrice));
      }
 
      function getCost(uint callback_gas) external view returns(uint) {
@@ -79,11 +80,9 @@ contract RNGOracleBridge is Ownable {
         request_count[msg.sender]++;
 
         // BUILD REQUEST
-        uint id = 0;
-        if(requests.length > 0){
-            id = requests[requests.length - 1].id + 1;
-        }
-        requests.push(Request (id, msg.sender , callId, block.timestamp, seed, min, max, callback_gas));
+        requests.push(Request (count, msg.sender , callId, block.timestamp, seed, min, max, callback_gas));
+
+        count++;
 
         emit Requested(msg.sender, callId);
 

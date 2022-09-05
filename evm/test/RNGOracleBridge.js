@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 const ONE_TLOS = ethers.utils.parseEther("1.0");
 const HALF_TLOS = ethers.utils.parseEther("0.5");
 const MAX_REQUESTS = 10;
-const GAS_PRICE = 7232321;
+const GAS_PRICE = 499809179185;
 
 describe("RNGOracleBridge Contract", function () {
     let bridge, owner, oracle, oracle2, user, consumer, gasOracle;
@@ -47,8 +47,8 @@ describe("RNGOracleBridge Contract", function () {
     });
     describe(":: Request", function () {
         it("Should be created with correct parameters" , async function () {
-            let cost = await bridge.getCost(20000);
-            await expect( consumer.makeRequest("120000", 10, 120, 20000, {"value": cost})).to.not.be.reverted;
+            let cost = await bridge.getCost(41000);
+            await expect( consumer.makeRequest("120000", 10, 120, 41000, {"value": cost})).to.not.be.reverted;
         });
         it("Should revert if value is incorrect" , async function () {
             let cost = await bridge.getCost(20000);
