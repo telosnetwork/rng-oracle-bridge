@@ -32,7 +32,7 @@ For more, refer to the documentation inside the [`evm`](https://github.com/telos
 
 ## ANTELOPE
 
-### rng.bridge.ccp
+### rng.bridge.cpp
 
 For more, refer to the documentation inside the [`antelope`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/antelope) folder
 
@@ -40,7 +40,7 @@ For more, refer to the documentation inside the [`antelope`](https://github.com/
 
 ### RequestListener.js
 
-Listens to request via Hyperion Stream and calls the `reqnotify()` action of the antelope smart contract.
+Listens to request via Hyperion Stream and calls the `reqnotify()` action of the `rng.bridge.cpp` antelope smart contract.
 
 For more, refer to the documentation inside the [`listeners`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/listeners) folder
 
