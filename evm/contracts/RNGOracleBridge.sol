@@ -25,6 +25,7 @@ contract RNGOracleBridge is Ownable {
         uint min;
         uint max;
         uint callback_gas;
+        address callback_address;
      }
      mapping (address => uint) public request_count;
      Request[] public requests; // Not using a mapping to be able to read from accountstate in native (else we need to know the mapping key we want to lookup)
@@ -67,7 +68,7 @@ contract RNGOracleBridge is Ownable {
      }
 
      // REQUEST HANDLING ================================================================ >
-     function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas) external payable returns (bool) {
+     function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable returns (bool) {
         require(msg.value == _getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
@@ -80,7 +81,7 @@ contract RNGOracleBridge is Ownable {
         request_count[msg.sender]++;
 
         // BUILD REQUEST
-        requests.push(Request (count, msg.sender , callId, block.timestamp, seed, min, max, callback_gas));
+        requests.push(Request (count, msg.sender , callId, block.timestamp, seed, min, max, callback_gas, callback_address));
 
         count++;
 
@@ -111,10 +112,13 @@ contract RNGOracleBridge is Ownable {
                 uint caller_id = requests[i].caller_id;
                 address caller = requests[i].caller_address;
                 uint gas = requests[i].callback_gas;
-                IRNGOracleConsumer(caller).receiveRandom{gas: gas}(caller_id, random);
+                address callback_address = requests[i].callback_address;
                 requests[i] = requests[requests.length - 1];
                 requests.pop();
                 request_count[caller]--;
+                if(gas > 0){
+                    IRNGOracleConsumer(callback_address).receiveRandom{gas: gas}(caller_id, random);
+                }
                 emit Replied(caller, caller_id, random);
                 return;
             }

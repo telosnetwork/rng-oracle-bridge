@@ -111,7 +111,7 @@ namespace orc_bridge
         // Loop to make sure we do not miss requests (concurrency)
         for(uint256_t i = 0; i < array_length->value;i=i+1){
             auto position = array_length->value - i;
-            auto id_slot = getArrayMemberSlot(array_slot, 0, 7, position);
+            auto id_slot = getArrayMemberSlot(array_slot, 0, 8, position);
 
             // get call ID & check it is not being processed
             auto call_id_checksum = account_states_bykey.find(id_slot);
@@ -123,10 +123,10 @@ namespace orc_bridge
             }
 
             // get data stored in account state
-            auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 7, position), "Seed not found");
-            auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 7, position));
+            auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 8, position), "Seed not found");
+            auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 8, position));
             auto max = (max_checksum == account_states_bykey.end()) ? 0 : max_checksum->value;
-            auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 7, position));
+            auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 8, position));
             auto min = (min_checksum == account_states_bykey.end()) ? 0 : min_checksum->value;
 
             // add request

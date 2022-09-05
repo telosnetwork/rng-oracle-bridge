@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 interface IRNGOracleBridge {
-    function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas) external payable;
+    function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable;
 }
 
 contract RNGOracleConsumer {
@@ -27,7 +27,7 @@ contract RNGOracleConsumer {
             callId = requests[requests.length - 1].id + 1;
         }
         requests.push(Request(callId, seed, min, max));
-        bridge.request{value: msg.value }(callId, seed, min, max, callback_gas);
+        bridge.request{value: msg.value }(callId, seed, min, max, callback_gas, address(this));
     }
 
     function receiveRandom(uint callId, uint random) external {
