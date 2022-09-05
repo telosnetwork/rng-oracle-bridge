@@ -94,11 +94,13 @@ From the `listeners` directory, use `pm2` to start the listener script:
 
 ## 4. MAKE A REQUEST !
 
-Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas)` function, passing a value to cover fee and callback gas cost, and implements a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. Refer to the `RNGOracleConsumer` EVM contract for an example.
+Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas)` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. 
+
+You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-oracle-bridge/blob/main/evm/contracts/RNGOracleConsumer.sol) EVM contract for an example.
 
 ### What is callback gas ? How do I know what value to pass ?
 
-The `callback_gas` variable contains the gas you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 21000). This is the maximum amount of gas that will be spent by the bridge when calling your contract, if your callback implementation asks for more gas, the transaction will fail.
+The `callback_gas` variable contains the gas you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 50000). This is the maximum amount of gas that will be spent by the bridge when calling your contract, if your callback implementation asks for more gas, the transaction will fail and the request will be deleted from storage.
 
 You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function. 
 
