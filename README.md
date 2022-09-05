@@ -6,7 +6,7 @@ Follow the instructions below, in the right order, to deploy it
 
 ## REQUIREMENTS
 
-This repository requires NodeJS 14+ and pm2 installed
+This repository requires NodeJS 14+ and pm2 installed as well as the cleos command line tool.
 
 ## INSTALL
 
