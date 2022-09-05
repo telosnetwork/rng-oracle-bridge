@@ -28,15 +28,21 @@ An example implementation of a consumer with request & callback
 
 The gas bridge to query current gas price. Only for test purposes, this contract will not be deployed.
 
+For more, refer to the documentation inside the [`evm`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/evm) folder
+
 ## ANTELOPE
 
-### delphi.bridge.ccp
+### rng.bridge.ccp
+
+For more, refer to the documentation inside the [`antelope`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/antelope) folder
 
 ## LISTENERS
 
 ### RequestListener.js
 
 Listens to request via Hyperion Stream and calls the `reqnotify()` action of the antelope smart contract.
+
+For more, refer to the documentation inside the [`listeners`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/listeners) folder
 
 ## MAKE A REQUEST !
 
