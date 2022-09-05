@@ -16,7 +16,7 @@ Clone the repo with:
 
 ## 1. DEPLOY THE EVM CONTRACT
 
-This will deploy the `RNGOracleBridge` contract as well as a `RNGOracleConsumer` contract so that you can interact directly with the bridge. Users should write their own implementation of the consumer, using the same `receiveRandom(uint, uint) external` callback function. The GasOracleBridge contract is just included for test purposes and will not be deployed.
+This will deploy the `RNGOracleBridge` contract as well as a `RNGOracleConsumer` contract so that you can interact directly with the bridge. Users should write their own implementation of the consumer, using the same `receiveRandom(uint, uint) external` callback function. The `GasOracleBridge` contract is just included for test purposes and will not be deployed.
 
 ### INSTALL
 
