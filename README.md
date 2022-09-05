@@ -16,9 +16,27 @@ Clone the repo with:
 
 ## EVM
 
+### RNGOracleBridge
+
+The bridge contract
+
+### RNGOracleConsumer
+
+An example implementation of a consumer with request & callback
+
+### GasOracleBridge
+
+The gas bridge to query current gas price. Only for test purposes, this contract will not be deployed.
+
 ## ANTELOPE
 
+### delphi.bridge.ccp
+
 ## LISTENERS
+
+### RequestListener.js
+
+Listens to request via Hyperion Stream and calls the `reqnotify()` action of the antelope smart contract.
 
 ## MAKE A REQUEST !
 
