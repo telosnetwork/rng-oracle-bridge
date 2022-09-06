@@ -148,9 +148,7 @@ namespace orc_bridge
                 std::make_tuple(request_id, seed_64, get_self())
             ).send();
 
-            return;
         }
-        check(false, "Request not found");
 
     };
 
