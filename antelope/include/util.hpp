@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace orc_bridge
+namespace evm_util
 {
 
   /**
