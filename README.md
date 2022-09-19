@@ -56,4 +56,8 @@ The `callback_gas` variable contains the gas you estimate will be needed to call
 
 You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function. 
 
+You can also take the gas price from the `GasOracleBridge` with `getPrice()`, multiply it with your gas unit estimate and add the fee from the `RNGOracleBridge` that you can query with `fee()`:
+
+`Cost = Gas Units * Gas Price + Bridge Fee`
+
 
