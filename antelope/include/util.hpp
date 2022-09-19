@@ -4,6 +4,8 @@
 
 #pragma once
 
+using namespace orc_bridge;
+
 namespace evm_util
 {
 

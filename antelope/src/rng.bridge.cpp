@@ -111,7 +111,7 @@ namespace orc_bridge
         // Loop to make sure we do not miss requests (concurrency)
         for(uint256_t i = 0; i < array_length->value;i=i+1){
             auto position = array_length->value - i;
-            auto id_slot = getArrayMemberSlot(array_slot, 0, 8, position);
+            auto id_slot = getArrayMemberSlot(array_slot, 0, 9, position);
 
             // get call ID & check it is not being processed
             auto call_id_checksum = account_states_bykey.find(id_slot);
@@ -123,11 +123,13 @@ namespace orc_bridge
             }
 
             // get data stored in account state
-            auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 8, position), "Seed not found");
-            auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 8, position));
-            auto max = (max_checksum == account_states_bykey.end()) ? 0 : max_checksum->value;
-            auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 8, position));
-            auto min = (min_checksum == account_states_bykey.end()) ? 0 : min_checksum->value;
+            const auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 9, position), "Seed not found");
+            const auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 9, position));
+            const auto max = (max_checksum == account_states_bykey.end()) ? 0 : max_checksum->value;
+            const auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 9, position));
+            const auto min = (min_checksum == account_states_bykey.end()) ? 0 : min_checksum->value;
+            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 7, 7, i));
+            const uint256_t gas = (gas_checksum == account_states_bykey.end()) ? uint256_t(0) : gas_checksum->value;
 
             // add request
             uint64_t request_id = requests.available_primary_key();
@@ -136,6 +138,7 @@ namespace orc_bridge
                 r.call_id = toChecksum256(call_id);
                 r.min = min;
                 r.max = max;
+                r.gas = gas;
             });
 
             uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed should be on first 64 bits of stored value (64b stored as 256b in accountstates table)
@@ -183,6 +186,7 @@ namespace orc_bridge
         auto number_bs = intx::to_byte_string(number);
         number_bs.insert(number_bs.begin(),(32 - number_bs.size()), 0);
 
+
         // Prepare address
         auto evm_contract = conf.evm_contract.extract_as_byte_array();
         std::vector<uint8_t> to;
@@ -202,7 +206,7 @@ namespace orc_bridge
             permission_level {get_self(), "active"_n},
             EVM_SYSTEM_CONTRACT,
             "raw"_n,
-            std::make_tuple(get_self(), rlp::encode(account->nonce, evm_conf.gas_price, GAS_LIMIT, to, uint256_t(0), data, 41, 0, 0),  false, std::optional<eosio::checksum160>(account->address))
+            std::make_tuple(get_self(), rlp::encode(account->nonce, evm_conf.gas_price, request.gas + BASE_GAS, to, uint256_t(0), data, 41, 0, 0),  false, std::optional<eosio::checksum160>(account->address))
         ).send();
 
         // DELETE REQUEST

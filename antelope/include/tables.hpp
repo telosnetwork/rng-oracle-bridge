@@ -78,13 +78,15 @@ namespace orc_bridge {
         eosio::checksum256 call_id;
         bigint::checksum256 max;
         bigint::checksum256 min;
+        bigint::checksum256 gas;
 
         uint64_t primary_key() const { return request_id; };
         uint256_t getMin() const { return min; };
         uint256_t getMax() const { return max; };
+        uint256_t getGas() const { return gas; };
         eosio::checksum256 by_call_id() const { return call_id; };
 
-        EOSLIB_SERIALIZE(Request, (request_id)(call_id)(max)(min));
+        EOSLIB_SERIALIZE(Request, (request_id)(call_id)(max)(min)(gas));
     };
     typedef multi_index<name("requests"), Request,
        eosio::indexed_by<eosio::name("bycallid"), eosio::const_mem_fun<Request, eosio::checksum256, &Request::by_call_id >>
