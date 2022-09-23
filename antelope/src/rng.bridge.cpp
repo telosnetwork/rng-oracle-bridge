@@ -186,7 +186,6 @@ namespace orc_bridge
         auto number_bs = intx::to_byte_string(number);
         number_bs.insert(number_bs.begin(),(32 - number_bs.size()), 0);
 
-
         // Prepare address
         auto evm_contract = conf.evm_contract.extract_as_byte_array();
         std::vector<uint8_t> to;
