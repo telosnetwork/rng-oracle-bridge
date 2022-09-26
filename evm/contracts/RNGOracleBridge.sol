@@ -71,6 +71,7 @@ contract RNGOracleBridge is Ownable {
      // REQUEST HANDLING ================================================================ >
      function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable returns (bool) {
         require(msg.value == _getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
+        require(max >= min, "Max cannot be less than min");
         require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
 
         // CHECK EXISTS
