@@ -42,6 +42,8 @@ The listener for this bridge is located inside our [Telos Oracle Scripts](https:
 
 Refer to the configuration sample's **listeners > rng > bridge** section for an example.
 
+Additionally, look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
+
 ## MAKE A REQUEST !
 
 Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address)` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. 
