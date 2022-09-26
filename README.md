@@ -1,12 +1,10 @@
 # RNG Oracle Bridge
 
-This repository includes three folders that need to be setup for the bridge to work: [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm), [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope), [Listeners](https://github.com/telosnetwork/telos-oracle-scripts).
-
-Follow the instructions below, in the right order, to deploy it
+The bridge requires the deployment of 3 components to work: the [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) & [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope) components which are part of this repository and the Listener component that is part of our [Telos Oracle Scripts](https://github.com/telosnetwork/telos-oracle-scripts) repository. Follow the instructions below to deploy it.
 
 ## REQUIREMENTS
 
-This repository requires NodeJS 14+, NPM and pm2 installed as well as the cleos command line tool.
+This repository requires NodeJS 14+, NPM and the cleos command line tool.
 
 ## INSTALL
 
