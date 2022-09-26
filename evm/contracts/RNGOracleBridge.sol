@@ -72,7 +72,7 @@ contract RNGOracleBridge is Ownable {
      function request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable returns (bool) {
         require(msg.value == _getCost(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(max >= min, "Max cannot be less than min");
-        require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one");
+        require(request_count[msg.sender] < maxRequests, "Maximum requests reached, wait for replies or delete one using deleteRequestorRequest(address requestor, uint callId)");
 
         // CHECK EXISTS
         require(!this.requestExists(msg.sender, callId), "Call ID already exists");
@@ -92,10 +92,24 @@ contract RNGOracleBridge is Ownable {
         return true;
      }
 
+     function deleteRequestorRequest(address requestor, uint callId) external returns (bool) {
+        for(uint i = 0; i < requests.length; i++){
+            if(requests[i].caller_address == requestor && requests[i].call_id == callId){
+                require(msg.sender == requests[i].caller_address, "Only the requestor can delete a request by requestor and callId");
+                address caller = requests[i].caller_address;
+                requests[i] = requests[requests.length - 1];
+                requests.pop();
+                request_count[caller]--;
+                return true;
+            }
+        }
+        revert("Request not found");
+     }
+
      function deleteRequest(uint id) external returns (bool) {
         for(uint i = 0; i < requests.length; i++){
             if(requests[i].id == id){
-                require(msg.sender == requests[i].caller_address || msg.sender == owner(), "Only the requestor or owner can delete a request");
+                require(msg.sender == oracle_evm_contract || msg.sender == owner(), "Only the bridge or owner can delete a request by ID");
                 address caller = requests[i].caller_address;
                 requests[i] = requests[requests.length - 1];
                 requests.pop();
