@@ -52,7 +52,7 @@ You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-o
 
 ### What is callback gas ? How do I know what value to pass ?
 
-The `callback_gas` variable contains the gas units you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 50000). This is the maximum amount of gas that will be spent by the bridge when calling your contract, if your callback implementation asks for more gas, the transaction will fail and the request will be deleted from storage.
+The `callback_gas` variable contains the gas units you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 50000). This is the maximum amount of gas that will be spent by the bridge when calling your contract, if your callback implementation asks for more gas, the transaction will fail and the request will be deleted from the bridge's storage.
 
 You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function. 
 
