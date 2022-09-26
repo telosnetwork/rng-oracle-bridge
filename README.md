@@ -1,6 +1,6 @@
 # RNG Oracle Bridge
 
-This repository includes three folders that need to be setup for the bridge to work: [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm), [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope), [listeners](https://github.com/telosnetwork/native-oracle-bridge/tree/main/listeners).
+This repository includes three folders that need to be setup for the bridge to work: [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm), [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope), [Listeners](https://github.com/telosnetwork/telos-oracle-scripts).
 
 Follow the instructions below, in the right order, to deploy it
 
