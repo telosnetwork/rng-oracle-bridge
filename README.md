@@ -1,5 +1,7 @@
 # RNG Oracle Bridge
 
+This repository contains the Telos RNG Oracle EVM <> Antelope Bridge.
+
 The bridge requires the deployment of 3 components to work: the [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) & [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope) components which are part of this repository and the Listener component that is part of our [Telos Oracle Scripts](https://github.com/telosnetwork/telos-oracle-scripts) repository. Follow the instructions below to deploy it.
 
 ## REQUIREMENTS
