@@ -1,12 +1,12 @@
 # RNG Oracle Bridge
 
-This repository includes three folders that need to be setup for the bridge to work: [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm), [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope), [Listeners](https://github.com/telosnetwork/telos-oracle-scripts).
+This repository contains the Telos RNG Oracle EVM <> Antelope Bridge.
 
-Follow the instructions below, in the right order, to deploy it
+The bridge requires the deployment of 3 components to work: the [EVM](https://github.com/telosnetwork/native-oracle-bridge/tree/main/evm) & [Antelope](https://github.com/telosnetwork/native-oracle-bridge/tree/main/antelope) components which are part of this repository and the Listener component that is part of our [Telos Oracle Scripts](https://github.com/telosnetwork/telos-oracle-scripts) repository. Follow the instructions below to deploy it.
 
 ## REQUIREMENTS
 
-This repository requires NodeJS 14+, NPM and pm2 installed as well as the cleos command line tool.
+This repository requires NodeJS 14+, NPM and the cleos command line tool.
 
 ## INSTALL
 
@@ -18,7 +18,11 @@ Clone the repo with:
 
 ### RNGOracleBridge
 
-The bridge contract
+The bridge contract, currently deployed at
+
+**TESTNET :** TBD
+
+**MAINNET :** TBD
 
 ### RNGOracleConsumer
 
@@ -42,11 +46,11 @@ The listener for this bridge is located inside our [Telos Oracle Scripts](https:
 
 Refer to the `config.yml.testnet.sample` file's **listeners > rng > bridge** section for an example.
 
-Optionally, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
+Optionally, if you have been registered for it, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
 
 ## MAKE A REQUEST !
 
-Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address)` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint random)` callback function in order to receive the oracle's answer. 
+Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint random) external` callback function in order to receive the oracle's answer. 
 
 You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-oracle-bridge/blob/main/evm/contracts/RNGOracleConsumer.sol) EVM contract for an example.
 
