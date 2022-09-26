@@ -2,17 +2,17 @@
 
 namespace orc_bridge
 {
-    //======================== admin actions ==========================
-    // initialize the contract
+    //======================== Admin actions ==========================
+    // Initialize the contract
     ACTION rngbridge::init(eosio::checksum160 evm_contract, string version, name admin){
-        // authenticate
+        // Authenticate
         require_auth(get_self());
 
-        // validate
+        // Validate
         check(!config_bridge.exists(), "contract already initialized");
         check(is_account(admin), "initial admin account doesn't exist");
 
-        // initialize
+        // Initialize
         auto stored = config_bridge.get_or_create(get_self(), config_row);
 
         stored.version            = version;
@@ -22,34 +22,34 @@ namespace orc_bridge
         // Get the scope
         account_table accounts(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto accounts_byaddress = accounts.get_index<"byaddress"_n>();
-        auto account = accounts_byaddress.require_find(pad160(evm_contract), "EVM bridge contract not found in eosio.evm Account");
+        auto account = accounts_byaddress.require_find(pad160(evm_contract), "EVM bridge contract not found in eosio.evm accounts");
 
         stored.evm_contract_scope       = account->index;
 
         config_bridge.set(stored, get_self());
     };
 
-    // set the contract version
+    // Set the contract version
     ACTION rngbridge::setversion(string new_version){
-        // authenticate
+        // Authenticate
         require_auth(config_bridge.get().admin);
 
         auto stored = config_bridge.get();
         stored.version = new_version;
 
-        // modify
+        // Modify
         config_bridge.set(stored, get_self());
     };
 
-    // set the bridge evm address
+    // Set the bridge evm address
     ACTION rngbridge::setevmctc(eosio::checksum160 new_contract){
-        // authenticate
+        // Authenticate
         require_auth(config_bridge.get().admin);
 
         // Get the scope for accountstates
         account_table accounts(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto accounts_byaddress = accounts.get_index<"byaddress"_n>();
-        auto account = accounts_byaddress.require_find(pad160(new_contract), "EVM bridge contract not found in eosio.evm Account");
+        auto account = accounts_byaddress.require_find(pad160(new_contract), "EVM bridge contract not found in eosio.evm accounts");
 
         // Save
         auto stored = config_bridge.get();
@@ -59,43 +59,43 @@ namespace orc_bridge
         config_bridge.set(stored, get_self());
     };
 
-    // set new contract admin
+    // Set new contract admin
     ACTION rngbridge::setadmin(name new_admin){
-        // authenticate
+        // Authenticate
         require_auth(config_bridge.get().admin);
 
-        // check account exists
+        // Check account exists
         check(is_account(new_admin), "New admin account does not exist, please verify the account name provided");
 
         auto stored = config_bridge.get();
         stored.admin = new_admin;
-        // modify
+        // Modify
         config_bridge.set(stored, get_self());
     };
 
     //======================== Request actions ========================
 
-    // remove a request
+    // Remove a request
     ACTION rngbridge::rmvrequest(uint64_t request_id)
     {
-        // authenticate
+        // Authenticate
         require_auth(config_bridge.get().admin);
 
-        // find request
+        // Find request
         requests_table requests(get_self(), get_self().value);
         auto itr = requests.find(request_id);
         check(itr != requests.end(), "Request not found");
 
-        //delete it
+        // Delete it
         requests.erase(itr);
     };
 
     //======================== RNG Oracle actions ========================
 
-    // request notification, checks for values in eosio.evm accountstate and adds a request
+    // Request notification, checks for values in eosio.evm accountstate and adds a request
     ACTION rngbridge::reqnotify()
     {
-        // open config_bridge singleton
+        // Open config_bridge singleton
         auto conf = config_bridge.get();
 
         // Define rest of tables
@@ -108,30 +108,34 @@ namespace orc_bridge
         auto array_length = account_states_bykey.require_find(storage_key, "No requests");
         auto array_slot = checksum256ToValue(keccak_256(storage_key.extract_as_byte_array()));
 
+        check(array_length->value > 0, "No requests found");
+
         // Loop to make sure we do not miss requests (concurrency)
         for(uint256_t i = 0; i < array_length->value;i=i+1){
             auto position = array_length->value - i;
             auto id_slot = getArrayMemberSlot(array_slot, 0, 9, position);
 
-            // get call ID & check it is not being processed
+            // Get call ID
             auto call_id_checksum = account_states_bykey.find(id_slot);
             auto call_id = (call_id_checksum == account_states_bykey.end()) ? uint256_t(0) : call_id_checksum->value;
+
+            // Check request not already processing
             auto requests_by_call_id = requests.get_index<"bycallid"_n>();
             auto request = requests_by_call_id.find(toChecksum256(call_id));
             if(request != requests_by_call_id.end()){
                 continue;
             }
 
-            // get data stored in account state
+            // Get data stored in account state
             const auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 9, position), "Seed not found");
             const auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 9, position));
             const auto max = (max_checksum == account_states_bykey.end()) ? 0 : max_checksum->value;
             const auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 9, position));
             const auto min = (min_checksum == account_states_bykey.end()) ? 0 : min_checksum->value;
-            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 7, 7, i));
+            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 7, 9, i));
             const uint256_t gas = (gas_checksum == account_states_bykey.end()) ? uint256_t(0) : gas_checksum->value;
 
-            // add request
+            // Add request
             uint64_t request_id = requests.available_primary_key();
             requests.emplace(get_self(), [&](auto& r) {
                 r.request_id = request_id;
@@ -143,7 +147,7 @@ namespace orc_bridge
 
             uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed should be on first 64 bits of stored value (64b stored as 256b in accountstates table)
 
-            // send to oracle
+            // Send to oracle
             action(
                 permission_level{get_self(),"active"_n},
                 ORACLE,
@@ -155,22 +159,22 @@ namespace orc_bridge
 
     };
 
-    // receive callback
+    // Receive callback
     ACTION rngbridge::receiverand(uint64_t caller_id, checksum256 random)
     {
-        // open config singletons
+        // Open config singletons
         auto conf = config_bridge.get();
         config_singleton_evm config_evm(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto evm_conf = config_evm.get();
 
-        // authenticate
+        // Authenticate
         require_auth(ORACLE);
 
-        // find request
+        // Find request
         requests_table requests(get_self(), get_self().value);
         auto &request = requests.get(caller_id, "Request could not be found");
 
-        // find account
+        // Find account
         account_table _accounts(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto accounts_byaccount = _accounts.get_index<"byaccount"_n>();
         auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
@@ -208,7 +212,7 @@ namespace orc_bridge
             std::make_tuple(get_self(), rlp::encode(account->nonce, evm_conf.gas_price, request.gas + BASE_GAS, to, uint256_t(0), data, 41, 0, 0),  false, std::optional<eosio::checksum160>(account->address))
         ).send();
 
-        // DELETE REQUEST
+        // Delete request
         requests.erase(request);
     };
 }
