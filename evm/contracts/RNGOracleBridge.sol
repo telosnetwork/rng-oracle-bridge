@@ -60,6 +60,7 @@ contract RNGOracleBridge is Ownable {
 
      function _getCost(uint callback_gas) internal view returns(uint) {
         uint gasPrice =  gasOracle.getPrice();
+        require(gasPrice > 0, "Could not retrieve gas price");
         return (fee + (callback_gas * gasPrice));
      }
 
@@ -117,7 +118,7 @@ contract RNGOracleBridge is Ownable {
                 requests.pop();
                 request_count[caller]--;
                 if(gas > 0){
-                    IRNGOracleConsumer(callback_address).receiveRandom{gas: gas}(caller_id, random);
+                    try IRNGOracleConsumer(callback_address).receiveRandom{gas: gas}(caller_id, random){}catch{}
                 }
                 emit Replied(caller, caller_id, random);
                 return;

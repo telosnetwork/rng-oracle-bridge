@@ -73,11 +73,6 @@ describe("RNGOracleBridge Contract", function () {
             await expect(consumer.makeRequest("120000", 10, 120, 20000, {"value": cost })).to.not.be.reverted;
             await expect(bridge.connect(user).reply(0, 116)).to.be.reverted;
         });
-        it("Should not be able to reply to a Request without enough gas" , async function () {
-            let cost = await bridge.getCost(1000);
-            await expect(consumer.makeRequest("120000", 10, 120, 1000, {"value": cost })).to.not.be.reverted;
-            await expect(bridge.connect(oracle).reply(0, 116)).to.be.reverted;
-        });
         it("Should be able to reply to a Request" , async function () {
             let cost = await bridge.getCost(50000);
             await expect(consumer.makeRequest("120000", 10, 120, 50000, {"value": cost })).to.not.be.reverted;
