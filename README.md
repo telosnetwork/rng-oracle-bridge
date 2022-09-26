@@ -20,9 +20,9 @@ Clone the repo with:
 
 The bridge contract, currently deployed at
 
-**TESTNET : **
+**TESTNET :** TBD
 
-**MAINNET : **
+**MAINNET :** TBD
 
 ### RNGOracleConsumer
 
