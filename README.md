@@ -46,7 +46,7 @@ The listener for this bridge is located inside our [Telos Oracle Scripts](https:
 
 Refer to the `config.yml.testnet.sample` file's **listeners > rng > bridge** section for an example.
 
-Optionally, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
+Optionally, if you have been registered for it, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
 
 ## MAKE A REQUEST !
 
