@@ -36,7 +36,7 @@ For more, refer to the documentation inside the [`evm`](https://github.com/telos
 
 For more, refer to the documentation inside the [`antelope`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/antelope) folder
 
-## LISTENER
+## LISTENERS
 
 The listener for this bridge is located inside our [Telos Oracle Scripts](https://github.com/telosnetwork/telos-oracle-scripts) repository
 
