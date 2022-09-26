@@ -36,13 +36,11 @@ For more, refer to the documentation inside the [`evm`](https://github.com/telos
 
 For more, refer to the documentation inside the [`antelope`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/antelope) folder
 
-## LISTENERS
+## LISTENERS 
 
-### RequestListener.js
+The listener for this bridge is located inside our [Telos Oracle Scripts](https://github.com/telosnetwork/telos-oracle-scripts) repository
 
-Listens to request via Hyperion Stream and calls the `reqnotify()` action of the `rng.bridge.cpp` antelope smart contract.
-
-For more, refer to the documentation inside the [`listeners`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/listeners) folder
+Refer to the configuration sample's **listeners > rng > bridge** section for an example.
 
 ## MAKE A REQUEST !
 
