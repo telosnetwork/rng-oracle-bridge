@@ -94,7 +94,7 @@ contract RNGOracleBridge is Ownable {
 
      function deleteRequestorRequest(address requestor, uint callId) external returns (bool) {
         for(uint i = 0; i < requests.length; i++){
-            if(requests[i].caller_address == requestor && requests[i].call_id == callId){
+            if(requests[i].caller_address == requestor && requests[i].caller_id == callId){
                 require(msg.sender == requests[i].caller_address, "Only the requestor can delete a request by requestor and callId");
                 address caller = requests[i].caller_address;
                 requests[i] = requests[requests.length - 1];
