@@ -15,7 +15,6 @@ interface IGasOracleBridge {
 contract RNGOracleBridge is Ownable {
     event  Requested(address indexed requestor, uint call_id, uint number_count);
     event  Replied(address indexed requestor, uint call_id, uint[] random_numbers);
-    event  CallbackFailed(address indexed requestor, uint call_id, address callback_address);
 
      struct Request {
         uint id;
@@ -27,10 +26,12 @@ contract RNGOracleBridge is Ownable {
         uint callback_gas;
         address callback_address;
      }
+
      mapping (address => uint) public request_count;
-     Request[] public requests; // Not using a mapping to be able to read from accountstate in native (else we need to know the mapping key we want to lookup)
-     uint public fee;
+     Request[] public requests; // Not using a mapping to be able to read from accountstate in Antelope (else we'd need to know the mapping key we want to lookup)
      uint count;
+
+     uint public fee;
      uint public max_requests;
      uint public max_number_count;
      address public oracle_evm_address;
@@ -67,7 +68,7 @@ contract RNGOracleBridge is Ownable {
 
      function _calculateRequestPrice(uint callback_gas) internal view returns(uint) {
         uint gas_price =  gas_oracle.getPrice();
-        require(gas_price > 0, "Could not retrieve gas price");
+        require(gas_price > 0, "Could not retrieve gas price from Gas Oracle");
         return (fee + (callback_gas * gas_price));
      }
 
@@ -103,7 +104,7 @@ contract RNGOracleBridge is Ownable {
      function deleteRequestorRequest(address requestor, uint callId) external returns (bool) {
         for(uint i = 0; i < requests.length; i++){
             if(requests[i].caller_address == requestor && requests[i].caller_id == callId){
-                require(msg.sender == requests[i].caller_address, "Only the requestor can delete a request by requestor and callId");
+                require(msg.sender == requests[i].caller_address || msg.sender == owner(), "Only the requestor or owner can delete a request by requestor and callId");
                 address caller = requests[i].caller_address;
                 requests[i] = requests[requests.length - 1];
                 requests.pop();
@@ -129,10 +130,10 @@ contract RNGOracleBridge is Ownable {
      }
 
      // REPLY HANDLING ================================================================ >
-     function reply(uint callId, uint[] calldata numbers) external {
+     function reply(uint call_id, uint[] calldata numbers) external {
         require(msg.sender == oracle_evm_address, "Only the native oracle bridge EVM address can call this function");
         for(uint i = 0; i < requests.length; i++){
-            if(requests[i].id == callId){
+            if(requests[i].id == call_id){
                 uint caller_id = requests[i].caller_id;
                 address caller = requests[i].caller_address;
                 uint gas = requests[i].callback_gas;
@@ -141,7 +142,7 @@ contract RNGOracleBridge is Ownable {
                 requests.pop();
                 request_count[caller]--;
                 if(gas > 0){
-                    try IRNGOracleConsumer(callback_address).receiveRandom{gas: gas}(caller_id, numbers){}catch{}
+                    try IRNGOracleConsumer(callback_address).receiveRandom{gas: gas}(caller_id, numbers){} catch {}
                 }
                 emit Replied(caller, caller_id, numbers);
                 return;
@@ -151,9 +152,9 @@ contract RNGOracleBridge is Ownable {
      }
 
      // UTIL ================================================================ >
-     function requestExists(address requestor, uint id) external view returns (bool) {
+     function requestExists(address requestor, uint call_id) external view returns (bool) {
         for(uint i = 0; i < requests.length; i++){
-            if(requests[i].caller_id == id && requests[i].caller_address == requestor ){
+            if(requests[i].caller_id == call_id && requests[i].caller_address == requestor ){
                 return true;
             }
         }

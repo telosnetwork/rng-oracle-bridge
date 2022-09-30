@@ -141,7 +141,6 @@ namespace orc_bridge
                 r.call_id = toChecksum256(call_id);
                 r.gas = gas;
                 r.count = count;
-                r.numbers = new uint256_t[count];
             });
 
             uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed is on first 64 bits of stored value (64b stored as 256b in accountstates table)
@@ -167,29 +166,21 @@ namespace orc_bridge
         config_singleton_evm config_evm(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto evm_conf = config_evm.get();
 
-        // Authenticate
+        // Authenticate (only the oracle can invoke this)
         require_auth(ORACLE);
 
-        // Find request
+        // Find the request
         requests_table requests(get_self(), get_self().value);
         auto &request = requests.get(caller_id, "Request could not be found");
 
-        // Find account
+        // Find the EVM account of this contract
         account_table _accounts(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
         auto accounts_byaccount = _accounts.get_index<"byaccount"_n>();
         auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
 
-        // Get random number from checksum256 (casted as uint256_t for Solidity)
-        auto byte_array = random.extract_as_byte_array();
-        uint256_t random_int = 0;
-        for (int i = 0; i < 32; i++) {
-            random_int <<= 32;
-            random_int |= (uint256_t)byte_array[i];
-        }
-
         // Modify request to save the number
         request.modify(iter,get_self(), [&]( auto& row ) {
-           row.numbers[row.numbers.length] = random_int;
+           row.numbers.push_back(random);
         });
 
         if(request.numbers.length != request.count){
@@ -218,7 +209,7 @@ namespace orc_bridge
         }
         // Insert each member's data
         for(int k = 0; k < request.numbers.length; k++){
-           const auto number_bs = intx::to_byte_string(request.numbers[k]);
+           const auto number_bs = request.numbers[k].extract_as_byte_array();
            data.insert(data.end(), number_bs.begin(), number_bs.end());
         }
 
