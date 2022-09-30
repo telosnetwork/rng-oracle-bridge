@@ -91,8 +91,7 @@ namespace orc_bridge
     };
 
     //======================== RNG Oracle actions ========================
-
-    // Request notification, checks for values in eosio.evm accountstate and adds a request
+    // Request notification, checks for values in eosio.evm accountstate and adds RNG requests accordingly
     ACTION rngbridge::reqnotify()
     {
         // Open config_bridge singleton
@@ -128,11 +127,11 @@ namespace orc_bridge
 
             // Get data stored in account state
             const auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 9, position), "Seed not found");
-            const auto max_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 9, position));
-            const auto max = (max_checksum == account_states_bykey.end()) ? 0 : max_checksum->value;
-            const auto min_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 9, position));
-            const auto min = (min_checksum == account_states_bykey.end()) ? 0 : min_checksum->value;
-            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 7, 9, i));
+
+            const auto count_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 9, i));
+            const uint256_t count = (count_checksum == account_states_bykey.end()) ? uint256_t(1) : count_checksum->value;
+
+            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 9, i));
             const uint256_t gas = (gas_checksum == account_states_bykey.end()) ? uint256_t(0) : gas_checksum->value;
 
             // Add request
@@ -140,26 +139,27 @@ namespace orc_bridge
             requests.emplace(get_self(), [&](auto& r) {
                 r.request_id = request_id;
                 r.call_id = toChecksum256(call_id);
-                r.min = min;
-                r.max = max;
                 r.gas = gas;
+                r.count = count;
+                r.numbers = new uint256_t[count];
             });
 
-            uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed should be on first 64 bits of stored value (64b stored as 256b in accountstates table)
+            uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed is on first 64 bits of stored value (64b stored as 256b in accountstates table)
 
-            // Send to oracle
-            action(
-                permission_level{get_self(),"active"_n},
-                ORACLE,
-                "requestrand"_n,
-                std::make_tuple(request_id, seed_64, get_self())
-            ).send();
-
+            // Send request to oracle * count of numbers requested (remember that seed is modified for each request)
+            for(uint256_t i = 0; i < count; i++){
+                action(
+                    permission_level{get_self(),"active"_n},
+                    ORACLE,
+                    "requestrand"_n,
+                    std::make_tuple(request_id, seed_64, get_self())
+                ).send();
+            }
         }
 
     };
 
-    // Receive callback
+    // Receive random number
     ACTION rngbridge::receiverand(uint64_t caller_id, checksum256 random)
     {
         // Open config singletons
@@ -179,16 +179,22 @@ namespace orc_bridge
         auto accounts_byaccount = _accounts.get_index<"byaccount"_n>();
         auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
 
-        // Get number from min/max
+        // Get random number from checksum256 (casted as uint256_t for Solidity)
         auto byte_array = random.extract_as_byte_array();
         uint256_t random_int = 0;
         for (int i = 0; i < 32; i++) {
             random_int <<= 32;
             random_int |= (uint256_t)byte_array[i];
         }
-        uint256_t number = request.getMin() + ( random_int % ( request.getMax() - request.getMin() + 1 ) );
-        auto number_bs = intx::to_byte_string(number);
-        number_bs.insert(number_bs.begin(),(32 - number_bs.size()), 0);
+
+        // Modify request to save the number
+        request.modify(iter,get_self(), [&]( auto& row ) {
+           row.numbers[row.numbers.length] = random_int;
+        });
+
+        if(request.numbers.length != request.count){
+            return; // Don't send response as long as we don't have the requested count of numbers
+        }
 
         // Prepare address
         auto evm_contract = conf.evm_contract.extract_as_byte_array();
@@ -202,9 +208,21 @@ namespace orc_bridge
         auto fnsig = toBin(FUNCTION_SIGNATURE);
         data.insert(data.end(), fnsig.begin(), fnsig.end());
         data.insert(data.end(), call_id.begin(), call_id.end());
-        data.insert(data.end(), number_bs.begin(), number_bs.end());
 
-        // Send it using eosio.evm
+        // Prepare the uint256[] tuple that holds the numbers
+        prefixTupleArray(data, request.numbers.length);
+        // Insert each member's position
+        for(int k = 0; k < request.numbers.length; k++){
+           std::vector<uint8_t> element_position = pad(intx::to_byte_string(uint256_t(32 * request.numbers.length + (32 * 9 * k))), 32, true);  // position of each member
+           data.insert(data.end(), element_position.begin(), element_position.end());
+        }
+        // Insert each member's data
+        for(int k = 0; k < request.numbers.length; k++){
+           const auto number_bs = intx::to_byte_string(request.numbers[k]);
+           data.insert(data.end(), number_bs.begin(), number_bs.end());
+        }
+
+        // Send it back to EVM using eosio.evm
         action(
             permission_level {get_self(), "active"_n},
             EVM_SYSTEM_CONTRACT,

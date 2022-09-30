@@ -133,6 +133,20 @@ namespace evm_util
         return toChecksum256(array_slot + position + (property_count * (array_length - uint256_t(1))));
   }
 
+  static inline void prefixTupleArrayElement(std::vector<uint8_t> *data){
+        std::vector<uint8_t> array_delimiter = pad(intx::to_byte_string(uint256_t(160)), 32, true);  // delimiter
+        data->insert(data->end(), array_delimiter.begin(), array_delimiter.end());
+        array_delimiter = pad(intx::to_byte_string(uint256_t(224)), 32, true);  // delimiter
+        data->insert(data->end(), array_delimiter.begin(), array_delimiter.end());
+  }
+
+  static inline void prefixTupleArray(std::vector<uint8_t> *data, uint64_t total){
+        std::vector<uint8_t> array_delimiter = pad(intx::to_byte_string(uint256_t(64)), 32, true); // delimiter
+        data->insert(data->end(), array_delimiter.begin(), array_delimiter.end());
+        array_delimiter = pad(intx::to_byte_string(uint256_t(total)), 32, true); // total array length
+        data->insert(data->end(), array_delimiter.begin(), array_delimiter.end());
+  }
+
   /**
    * Keccak (SHA3) Functions
    */
