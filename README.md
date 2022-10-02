@@ -50,7 +50,7 @@ Optionally, if you have been registered for it, you can look for the **listeners
 
 ## MAKE A REQUEST !
 
-Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint random) external` callback function in order to receive the oracle's answer. 
+Deploy a contract that calls the newly deployed `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint[] numbers) external` callback function in order to receive the oracle's answer. 
 
 You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-oracle-bridge/blob/main/evm/contracts/RNGOracleConsumer.sol) EVM contract for an example.
 
