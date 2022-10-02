@@ -58,10 +58,10 @@ You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-o
 
 The `callback_gas` variable contains the gas units you estimate will be needed to call your `receiveRandom()` callback function in your own smart contract (ie: 50000). This is the maximum amount of gas that will be spent by the bridge when calling your contract, if your callback implementation asks for more gas, the transaction will fail and the request will be deleted from the bridge's storage.
 
-You can query the TLOS value to pass in your `request()` function call by calling the `getCost(uint callback_gas)` function. 
+You can query the TLOS value to pass in your `request()` function call by calling the `calculateRequestPrice(uint callback_gas)` public function. 
 
-You can also calculate that cost by taking the gas price from the `GasOracleBridge` with `getPrice()`, multiply that price with your estimate gas units (ie: 50000) and add the fee from the `RNGOracleBridge` that you can query with `fee()`:
+You can alternatively calculate that price by taking the gas price from the `GasOracleBridge` with `getPrice()`, multiply that price with your estimate gas units (ie: 50000) and add the fee from the `RNGOracleBridge` that you can query with `fee()`:
 
-`Cost = Gas Units * Gas Price + Bridge Fee`
+`Price = Gas Units * Gas Price + Bridge Fee`
 
 
