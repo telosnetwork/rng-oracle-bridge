@@ -71,6 +71,8 @@ contract MyContract {
 }
 ```
 
+The request function takes in a **callId**, for you to keep track of the requests & handle answers later, a **seed** for the random generation that you can generate however you like, the **callback_gas** unit (see below), the **callback_address** where to call your implementation of the callback function  and the **count** of requested numbers. 
+
 On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint[] numbers) external` callback function in order to receive the oracle's answer. 
 
 You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-oracle-bridge/blob/main/evm/contracts/RNGOracleConsumer.sol) EVM contract for an example.
