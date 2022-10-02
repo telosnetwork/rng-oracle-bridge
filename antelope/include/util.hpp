@@ -129,6 +129,15 @@ namespace evm_util
     return intx::be::unsafe::load<uint256_t>(output.data());
   }
 
+  template<typename T>
+  static inline std::vector<T> pad(std::vector<T> vector, uint64_t padding, bool prepend){
+    if(vector.size() >= padding){
+        return vector;
+    }
+    vector.insert(prepend ? vector.begin() : vector.end(), (padding - vector.size()), 0);
+    return vector;
+  }
+
   inline const eosio::checksum256 getArrayMemberSlot(uint256_t array_slot, uint256_t position, uint256_t property_count, uint256_t array_length){
         return toChecksum256(array_slot + position + (property_count * (array_length - uint256_t(1))));
   }

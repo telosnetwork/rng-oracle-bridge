@@ -146,7 +146,7 @@ namespace orc_bridge
             uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed is on first 64 bits of stored value (64b stored as 256b in accountstates table)
 
             // Send request to oracle * count of numbers requested (remember that seed is modified for each request)
-            for(uint256_t i = 0; i < count; i++){
+            for(uint256_t i = 0; i < count; i=i+1){
                 action(
                     permission_level{get_self(),"active"_n},
                     ORACLE,
@@ -179,11 +179,11 @@ namespace orc_bridge
         auto account = accounts_byaccount.require_find(get_self().value, "Account not found");
 
         // Modify request to save the number
-        request.modify(iter,get_self(), [&]( auto& row ) {
+        requests.modify(request,get_self(), [&]( auto& row ) {
            row.numbers.push_back(random);
         });
 
-        if(request.numbers.length != request.count){
+        if(request.numbers.size() != request.count){
             return; // Don't send response as long as we don't have the requested count of numbers
         }
 
@@ -201,14 +201,14 @@ namespace orc_bridge
         data.insert(data.end(), call_id.begin(), call_id.end());
 
         // Prepare the uint256[] tuple that holds the numbers
-        prefixTupleArray(data, request.numbers.length);
+        prefixTupleArray(&data, request.numbers.size());
         // Insert each member's position
-        for(int k = 0; k < request.numbers.length; k++){
-           std::vector<uint8_t> element_position = pad(intx::to_byte_string(uint256_t(32 * request.numbers.length + (32 * 9 * k))), 32, true);  // position of each member
+        for(int k = 0; k < request.numbers.size(); k++){
+           std::vector<uint8_t> element_position = pad(intx::to_byte_string(uint256_t(32 * request.numbers.size() + (32 * 9 * k))), 32, true);  // position of each member
            data.insert(data.end(), element_position.begin(), element_position.end());
         }
         // Insert each member's data
-        for(int k = 0; k < request.numbers.length; k++){
+        for(int k = 0; k < request.numbers.size(); k++){
            const auto number_bs = request.numbers[k].extract_as_byte_array();
            data.insert(data.end(), number_bs.begin(), number_bs.end());
         }
