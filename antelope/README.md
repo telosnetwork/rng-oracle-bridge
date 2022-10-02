@@ -8,11 +8,7 @@ Navigate to the `antelope` directory and run the following command:
 
 ### BUILD
 
-Create a build directory with:
-
-`mkdir build`
-
-And run the following command:
+Run the following command:
 
 `bash build.sh`
 
