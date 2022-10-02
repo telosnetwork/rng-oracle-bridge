@@ -28,7 +28,11 @@ You can find the tests in the `tests` directory.
 
 You can deploy the contract using cleos with the following command:
 
-`cleos --url http://testnet.telos.net set contract [CONTRACT ACCOUNT] ./build ./rng.bridge.cpp ./rng.bridge.hpp`
+`bash deploy.sh`
+
+It will default to testnet, pass mainnet as argument to deploy to mainnet
+
+`bash deploy.sh mainnet`
 
 ### CONFIGURE
 
