@@ -50,7 +50,28 @@ Optionally, if you have been registered for it, you can look for the **listeners
 
 ## MAKE A REQUEST !
 
-Deploy a contract that calls the `RNGOracleBridge` contract's `request(uint callId, uint64 seed, uint min, uint max, uint callback_gas, address callback_address) external payable` function, passing a value to cover fee and callback gas cost (see below). On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint[] numbers) external` callback function in order to receive the oracle's answer. 
+Deploy a contract that calls the `RNGOracleBridge` contract's `request()` function, passing a value to cover fee and callback gas cost (refer to the **callback gas** section further ahead).
+
+```
+interface IRNGOracleBridge {
+    function request(uint callId, uint64 seed, uint callback_gas, address callback_address, uint number_count) external payable;
+}
+
+contract MyContract {
+    IRNGOracleBridge bridge;
+
+    constructor(address _bridge) {
+        bridge = IRNGOracleBridge(_bridge);
+    }
+    
+    function makeRequest(uint64 seed, uint callback_gas, uint count) external  payable {
+        ... YOUR LOGIC
+        bridge.request{value: msg.value }(callId, seed, callback_gas, address(this), count);
+    }
+}
+```
+
+On the same contract, or in a new one, implement a `receiveRandom(uint callId, uint[] numbers) external` callback function in order to receive the oracle's answer. 
 
 You can refer to the [`RNGOracleConsumer`](https://github.com/telosnetwork/rng-oracle-bridge/blob/main/evm/contracts/RNGOracleConsumer.sol) EVM contract for an example.
 
