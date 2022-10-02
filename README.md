@@ -65,7 +65,7 @@ contract MyContract {
     }
     
     function makeRequest(uint64 seed, uint callback_gas, uint count) external  payable {
-        ... YOUR LOGIC
+        ... YOUR LOGIC TO SETUP THE CALLID, ETC...
         bridge.request{value: msg.value }(callId, seed, callback_gas, address(this), count);
     }
 }
