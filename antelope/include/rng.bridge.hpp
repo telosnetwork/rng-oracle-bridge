@@ -8,6 +8,7 @@
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/crypto.hpp>
+#include <eosio/transaction.hpp>
 
 // EXTERNAL
 #include <intx/base.hpp>
@@ -71,7 +72,22 @@ namespace orc_bridge
                       itr = requests.erase(--itr);
                     }
                 }
+                ACTION printrand(uint64_t caller_id)
+                {
+                    // Open config singletons
+                    auto conf = config_bridge.get();
+                    config_singleton_evm config_evm(EVM_SYSTEM_CONTRACT, EVM_SYSTEM_CONTRACT.value);
+                    auto evm_conf = config_evm.get();
+
+                    // Find the request
+                    requests_table requests(get_self(), get_self().value);
+                    auto &request = requests.get(caller_id, "Request could not be found");
+
+                    int numbers_received = int(request.numbers.size());
+                    print(numbers_received);
+                }
             #endif
+
             config_singleton_bridge config_bridge;
     };
 }

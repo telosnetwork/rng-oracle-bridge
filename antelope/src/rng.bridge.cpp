@@ -126,12 +126,12 @@ namespace orc_bridge
             }
 
             // Get data stored in account state
-            const auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 9, position), "Seed not found");
+            const auto seed = account_states_bykey.require_find(getArrayMemberSlot(array_slot, 4, 8, position), "Seed not found");
 
-            const auto count_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 9, i));
+            const auto count_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 5, 8, position));
             const uint256_t count = (count_checksum == account_states_bykey.end()) ? uint256_t(1) : count_checksum->value;
 
-            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 9, i));
+            const auto gas_checksum = account_states_bykey.find(getArrayMemberSlot(array_slot, 6, 8, position));
             const uint256_t gas = (gas_checksum == account_states_bykey.end()) ? uint256_t(0) : gas_checksum->value;
 
             // Add request
@@ -146,14 +146,16 @@ namespace orc_bridge
             uint64_t seed_64 = intx::lo_half(intx::lo_half(seed->value)); // Seed is on first 64 bits of stored value (64b stored as 256b in accountstates table)
 
             // Send request to oracle * count of numbers requested (remember that seed is modified for each request)
+            transaction requestrand;
             for(uint256_t i = 0; i < count; i=i+1){
-                action(
+                requestrand.actions.emplace_back(
                     permission_level{get_self(),"active"_n},
                     ORACLE,
                     "requestrand"_n,
                     std::make_tuple(request_id, seed_64, get_self())
-                ).send();
+                );
             }
+            requestrand.send(0, _self, false);
         }
 
     };
@@ -183,8 +185,11 @@ namespace orc_bridge
            row.numbers.push_back(random);
         });
 
-        if(request.numbers.size() != request.count){
-            return; // Don't send response as long as we don't have the requested count of numbers
+        int numbers_received = int(request.numbers.size());
+
+        // Don't send response as long as we don't have the requested count of numbers
+        if(numbers_received < int(request.count)){
+            return;
         }
 
         // Prepare address
@@ -201,14 +206,14 @@ namespace orc_bridge
         data.insert(data.end(), call_id.begin(), call_id.end());
 
         // Prepare the uint256[] tuple that holds the numbers
-        prefixTupleArray(&data, request.numbers.size());
+        prefixTupleArray(&data, numbers_received);
         // Insert each member's position
-        for(int k = 0; k < request.numbers.size(); k++){
-           std::vector<uint8_t> element_position = pad(intx::to_byte_string(uint256_t(32 * request.numbers.size() + (32 * 9 * k))), 32, true);  // position of each member
+        for(int k = 0; k < numbers_received; k++){
+           std::vector<uint8_t> element_position = pad(intx::to_byte_string(uint256_t(32 * numbers_received + (32 * 9 * k))), 32, true);  // position of each member
            data.insert(data.end(), element_position.begin(), element_position.end());
         }
         // Insert each member's data
-        for(int k = 0; k < request.numbers.size(); k++){
+        for(int k = 0; k < numbers_received; k++){
            const auto number_bs = request.numbers[k].extract_as_byte_array();
            data.insert(data.end(), number_bs.begin(), number_bs.end());
         }

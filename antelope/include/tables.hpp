@@ -5,6 +5,7 @@ using namespace eosio;
 using namespace orc_bridge;
 
 namespace orc_bridge {
+
     //======================== eosio.evm tables =======================
       struct [[eosio::table, eosio::contract("eosio.evm")]] Account {
         uint64_t index;
@@ -85,7 +86,7 @@ namespace orc_bridge {
         uint256_t getCount() const { return count; };
         eosio::checksum256 by_call_id() const { return call_id; };
 
-        EOSLIB_SERIALIZE(Request, (request_id)(call_id)(gas)(count));
+        EOSLIB_SERIALIZE(Request, (request_id)(call_id)(gas)(count)(numbers));
     };
     typedef multi_index<name("requests"), Request,
        eosio::indexed_by<eosio::name("bycallid"), eosio::const_mem_fun<Request, eosio::checksum256, &Request::by_call_id >>
