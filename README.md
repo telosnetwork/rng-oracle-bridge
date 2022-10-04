@@ -49,8 +49,8 @@ Refer to the `config.yml.testnet.sample` file's **listeners > rng > bridge** sec
 Optionally, if you have been registered for it, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
 
 ## HOW IT WORKS
-
-![RNGOracleBridge](https://user-images.githubusercontent.com/5913758/193872412-b2d148ed-7bcd-4f3c-a572-9e59ad1eeeff.jpg)
+ 
+![RNGOracleBridge](https://user-images.githubusercontent.com/5913758/193873078-b8e2e7ab-1f33-41d8-ac47-32ec81548c64.jpg)
 
 ## MAKE A REQUEST !
 
