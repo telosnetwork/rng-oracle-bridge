@@ -50,7 +50,7 @@ Optionally, if you have been registered for it, you can look for the **listeners
 
 ## HOW IT WORKS
 
-![RNGOracleBridge](https://user-images.githubusercontent.com/5913758/193871790-23c44396-e04b-4ccf-a1d0-85421b12c808.jpg)
+![RNGOracleBridge](https://user-images.githubusercontent.com/5913758/193872412-b2d148ed-7bcd-4f3c-a572-9e59ad1eeeff.jpg)
 
 ## MAKE A REQUEST !
 
