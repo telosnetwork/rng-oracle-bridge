@@ -33,16 +33,18 @@ contract RNGOracleBridge is Ownable {
 
      uint public fee;
      uint public max_requests;
+     uint public max_callback_gas;
      uint8 public max_number_count;
      address public oracle_evm_address;
      IGasOracleBridge public gas_oracle;
 
-      constructor(uint _fee, uint _max_requests, uint8 _max_number_count, address _oracle_evm_address, IGasOracleBridge _gas_oracle) {
+      constructor(uint _fee, uint _max_requests, uint8 _max_number_count, uint max_callback_gas, address _oracle_evm_address, IGasOracleBridge _gas_oracle) {
         gas_oracle = _gas_oracle;
         fee = _fee;
         max_requests = _max_requests;
         oracle_evm_address = _oracle_evm_address;
         max_number_count = _max_number_count;
+        max_callback_gas = _max_callback_gas;
       }
 
      // SETTERS  ================================================================ >
@@ -79,9 +81,10 @@ contract RNGOracleBridge is Ownable {
      // REQUEST HANDLING ================================================================ >
      function request(uint callId, uint64 seed, uint callback_gas, address callback_address, uint8 number_count) external payable returns (bool) {
         // CHECK ARGUMENTS
-        require(msg.value == _calculateRequestPrice(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(request_count[msg.sender] < max_requests, "Maximum requests reached, wait for replies or delete one using deleteRequestorRequest(address requestor, uint callId)");
         require(max_number_count >= number_count, "Requested number count is above max");
+        require(max_callback_gas >= callback_gas, "Callback gas is above maximum");
+        require(msg.value == _calculateRequestPrice(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
 
         // CHECK EXISTS
         require(!this.requestExists(msg.sender, callId), "Call ID already exists");
