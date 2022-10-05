@@ -22,7 +22,7 @@ contract RNGOracleBridge is Ownable {
         uint caller_id;
         uint requested_at;
         uint64 seed;
-        uint number_count;
+        uint8 number_count;
         uint callback_gas;
         address callback_address;
      }
@@ -33,11 +33,11 @@ contract RNGOracleBridge is Ownable {
 
      uint public fee;
      uint public max_requests;
-     uint public max_number_count;
+     uint8 public max_number_count;
      address public oracle_evm_address;
      IGasOracleBridge public gas_oracle;
 
-      constructor(uint _fee, uint _max_requests, uint _max_number_count, address _oracle_evm_address, IGasOracleBridge _gas_oracle) {
+      constructor(uint _fee, uint _max_requests, uint8 _max_number_count, address _oracle_evm_address, IGasOracleBridge _gas_oracle) {
         gas_oracle = _gas_oracle;
         fee = _fee;
         max_requests = _max_requests;
@@ -77,7 +77,7 @@ contract RNGOracleBridge is Ownable {
      }
 
      // REQUEST HANDLING ================================================================ >
-     function request(uint callId, uint64 seed, uint callback_gas, address callback_address, uint number_count) external payable returns (bool) {
+     function request(uint callId, uint64 seed, uint callback_gas, address callback_address, uint8 number_count) external payable returns (bool) {
         // CHECK ARGUMENTS
         require(msg.value == _calculateRequestPrice(callback_gas), "Send enough TLOS to cover fee and callback gas, use getCost(callback_gas)");
         require(request_count[msg.sender] < max_requests, "Maximum requests reached, wait for replies or delete one using deleteRequestorRequest(address requestor, uint callId)");
