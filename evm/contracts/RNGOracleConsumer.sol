@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 interface IRNGOracleBridge {
     function request(uint callId, uint64 seed, uint callback_gas, address callback_address, uint number_count) external payable;
+    function calculateRequestPrice(uint callback_gas) external view returns(uint);
 }
 
 contract RNGOracleConsumer {
@@ -21,12 +22,17 @@ contract RNGOracleConsumer {
 
     function makeRequest(uint64 seed, uint callback_gas, uint count) external  payable {
         require(msg.value > 0, "Request needs fee passed");
+
+        uint price = bridge.calculateRequestPrice(callback_gas);
+        require(price > 0, "Could not calculate price");
+        require(address(this).balance >= price, "Contract balance is too low");
+
         uint callId = 0;
         if(requests.length > 0){
             callId = requests[requests.length - 1].id + 1;
         }
         requests.push(Request(callId, seed, count));
-        bridge.request{value: msg.value }(callId, seed, callback_gas, address(this), count);
+        bridge.request{value: price }(callId, seed, callback_gas, address(this), count);
     }
 
     function receiveRandom(uint callId, uint[] calldata numbers) external {
