@@ -32,7 +32,7 @@ An example implementation of a consumer with request & callback
 
 The gas bridge to query current gas price. Only for test purposes, this contract will not be deployed.
 
-_To learn how to deploy it, refer to the documentation inside the [`evm`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/evm) folder_
+_To learn how to deploy those contracts, refer to the documentation inside the [`evm`](https://github.com/telosnetwork/rng-oracle-bridge/tree/main/evm) folder_
 
 ## ANTELOPE
 
