@@ -54,6 +54,6 @@ Refer to the `config.yml.testnet.sample` file's **listeners > rng > bridge** sec
 
 Optionally, if you have been registered for it, you can look for the **listeners > rng > request** section to enable the RNG Request Listener that will sign incoming RNG Oracle requests on Antelope.
 
-## Use it !
+## USING THE BRIDGE
 
 Follow the documentation available in Telos docs [here]() to learn how to request random numbers using our RNG Oracle Bridge.
