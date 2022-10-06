@@ -16,7 +16,7 @@ Clone the repo with:
 
 ## EVM
 
-### RNGOracleBridge
+### RNGOracleBridge.sol
 
 The bridge's EVM contract, it receives requests and send the response back to the consumer's callback, it is currently deployed at
 
@@ -24,11 +24,11 @@ The bridge's EVM contract, it receives requests and send the response back to th
 
 **MAINNET :** TBD
 
-### RNGOracleConsumer
+### RNGOracleConsumer.sol
 
 An example implementation of a consumer with request & callback
 
-### GasOracleBridge
+### GasOracleBridge.sol
 
 The gas bridge to query current gas price. Only for test purposes, this contract will not be deployed.
 
